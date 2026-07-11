@@ -1,0 +1,12 @@
+interface:
+  display_name: Art Gallery Motion
+  short_description: "Animaciones sutiles para galer\xEDas de arte"
+  default_prompt: "Us\xE1 $art-gallery-motion para a\xF1adir animaciones sutiles,\
+    \ accesibles y coherentes con esta galer\xEDa de arte."
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true

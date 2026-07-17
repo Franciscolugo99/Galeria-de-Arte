@@ -1,0 +1,12 @@
+{
+  "settings": {
+    "artist_name": "Nombre de la artista",
+    "artist_bio": "Texto de presentación a definir con la artista.",
+    "artist_location": "Mendoza, Argentina",
+    "artist_photo": "",
+    "contact_email": "",
+    "recovery_email": "",
+    "instagram_url": "",
+    "whatsapp_url": ""
+  }
+}

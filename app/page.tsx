@@ -8,61 +8,39 @@ import {
   useState,
 } from "react";
 
-type Category = "Todas" | "Paisajes" | "Retratos" | "Naturaleza";
+type Category = string;
 type RevealStyle = CSSProperties & { "--reveal-delay"?: string };
 
-const works = [
-  {
-    title: "Tarde en la cordillera",
-    category: "Paisajes" as const,
-    image: "/art/hero-paisaje.webp",
-    medium: "Óleo sobre lienzo",
-    size: "90 x 120 cm",
-    status: "Disponible",
-  },
-  {
-    title: "Luz serena",
-    category: "Retratos" as const,
-    image: "/art/retrato-mujer.webp",
-    medium: "Óleo sobre lienzo",
-    size: "60 x 50 cm",
-    status: "Colección privada",
-  },
-  {
-    title: "Silencio de otoño",
-    category: "Naturaleza" as const,
-    image: "/art/bodegon.webp",
-    medium: "Óleo sobre tabla",
-    size: "50 x 40 cm",
-    status: "Disponible",
-  },
-  {
-    title: "Raíces",
-    category: "Retratos" as const,
-    image: "/art/retrato-hombre.webp",
-    medium: "Óleo sobre lienzo",
-    size: "70 x 55 cm",
-    status: "Obra por encargo",
-  },
-  {
-    title: "Camino al viñedo",
-    category: "Paisajes" as const,
-    image: "/art/paisaje-camino.webp",
-    medium: "Óleo sobre lienzo",
-    size: "65 x 90 cm",
-    status: "Disponible",
-  },
-  {
-    title: "Memoria de flores",
-    category: "Naturaleza" as const,
-    image: "/art/flores.webp",
-    medium: "Técnica mixta",
-    size: "55 x 45 cm",
-    status: "Disponible",
-  },
-];
+interface Work {
+  id: number;
+  title: string;
+  category: string;
+  image: string;
+  altText?: string;
+  medium: string;
+  size: string;
+  status: string;
+}
 
-const categories: Category[] = ["Todas", "Paisajes", "Retratos", "Naturaleza"];
+interface SiteSettings {
+  artist_name: string;
+  artist_bio: string;
+  artist_location: string;
+  artist_photo: string;
+  contact_email: string;
+  instagram_url: string;
+  whatsapp_url: string;
+}
+
+const defaultSettings: SiteSettings = {
+  artist_name: "Nombre de la artista",
+  artist_bio: "Texto de presentación a definir con la artista.",
+  artist_location: "Mendoza, Argentina",
+  artist_photo: "",
+  contact_email: "",
+  instagram_url: "",
+  whatsapp_url: "",
+};
 
 const navLinks = [
   ["Inicio", "#inicio"],
@@ -80,14 +58,90 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [category, setCategory] = useState<Category>("Todas");
   const [sent, setSent] = useState(false);
+  const [works, setWorks] = useState<Work[]>([]);
+  const [catalogMessage, setCatalogMessage] = useState("Cargando obras…");
+  const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
+
+  const categories = useMemo(
+    () => ["Todas", ...Array.from(new Set(works.map((work) => work.category)))],
+    [works],
+  );
 
   const visibleWorks = useMemo(
     () =>
       category === "Todas"
         ? works
         : works.filter((work) => work.category === category),
-    [category],
+    [category, works],
   );
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadCatalog() {
+      try {
+        let response = await fetch("/api/works.php", {
+          headers: { Accept: "application/json" },
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          response = await fetch("/data/works.json", {
+            signal: controller.signal,
+          });
+        }
+        if (!response.ok) {
+          throw new Error("No se pudo cargar el catálogo");
+        }
+        const payload = (await response.json()) as { works?: Work[] };
+        const nextWorks = Array.isArray(payload.works) ? payload.works : [];
+        setWorks(nextWorks);
+        setCatalogMessage(
+          nextWorks.length === 0
+            ? "Todavía no hay obras publicadas."
+            : "",
+        );
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") {
+          setCatalogMessage(
+            "No pudimos cargar las obras. Intentá nuevamente en unos minutos.",
+          );
+        }
+      }
+    }
+
+    loadCatalog();
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadSettings() {
+      try {
+        let response = await fetch("/api/settings.php", {
+          headers: { Accept: "application/json" },
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          response = await fetch("/data/settings.json", {
+            signal: controller.signal,
+          });
+        }
+        if (!response.ok) return;
+        const payload = (await response.json()) as {
+          settings?: Partial<SiteSettings>;
+        };
+        setSettings({ ...defaultSettings, ...payload.settings });
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") {
+          setSettings(defaultSettings);
+        }
+      }
+    }
+
+    loadSettings();
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     if (!menuOpen) {
@@ -114,6 +168,10 @@ export default function Home() {
       return;
     }
 
+    if (!("IntersectionObserver" in window)) {
+      return;
+    }
+
     document.documentElement.classList.add("motion-ready");
 
     return () => {
@@ -127,6 +185,10 @@ export default function Home() {
     ).matches;
 
     if (prefersReducedMotion) {
+      return;
+    }
+
+    if (!("IntersectionObserver" in window)) {
       return;
     }
 
@@ -154,7 +216,7 @@ export default function Home() {
     revealItems.forEach((item) => observer.observe(item));
 
     return () => observer.disconnect();
-  }, [category]);
+  }, [category, works.length]);
 
   function selectCategory(nextCategory: Category) {
     setCategory(nextCategory);
@@ -170,7 +232,7 @@ export default function Home() {
     <main>
       <header className="site-header">
         <a className="brand" href="#inicio" aria-label="Ir al inicio">
-          Nombre de la artista
+          {settings.artist_name}
         </a>
         <button
           className={menuOpen ? "menu-button is-open" : "menu-button"}
@@ -239,33 +301,31 @@ export default function Home() {
       </section>
 
       <nav className="category-ribbon" aria-label="Categorías de obras">
-        <a href="#obras" onClick={() => selectCategory("Paisajes")}>
-          <span>01</span> Paisajes
-        </a>
-        <i aria-hidden="true">·</i>
-        <a href="#obras" onClick={() => selectCategory("Retratos")}>
-          <span>02</span> Retratos
-        </a>
-        <i aria-hidden="true">·</i>
-        <a href="#obras" onClick={() => selectCategory("Naturaleza")}>
-          <span>03</span> Naturaleza
-        </a>
+        {categories.slice(1).map((item, index) => (
+          <a key={item} href="#obras" onClick={() => selectCategory(item)}>
+            <span>{String(index + 1).padStart(2, "0")}</span> {item}
+          </a>
+        ))}
       </nav>
 
       <section className="intro section-shell scroll-reveal" id="artista">
         <p className="section-kicker">La obra</p>
-        <div className="intro-grid">
+        <div className={settings.artist_photo ? "intro-grid has-photo" : "intro-grid"}>
           <h2>Pintar lo que una fotografía no puede contar.</h2>
+          {settings.artist_photo && (
+            <div className="artist-photo">
+              <img
+                src={settings.artist_photo}
+                alt={`Retrato de ${settings.artist_name}`}
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          )}
           <div>
-            <p>
-              Este espacio reúne una selección provisoria de pinturas realistas,
-              paisajes, retratos y obras de naturaleza mientras se incorpora el
-              material definitivo de la artista.
-            </p>
-            <p>
-              La web está preparada para reemplazar estos textos por biografía,
-              técnica y obra real sin perder el tono editorial de la galería.
-            </p>
+            {settings.artist_bio.split(/\n+/).map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
             <a className="text-link" href="#contacto">
               Consultar por obras o encargos <span aria-hidden="true">↗</span>
             </a>
@@ -299,16 +359,21 @@ export default function Home() {
           aria-live="polite"
           key={category}
         >
+          {catalogMessage && (
+            <p className="catalog-message" role="status">
+              {catalogMessage}
+            </p>
+          )}
           {visibleWorks.map((work, index) => (
             <article
               className={`work-card work-${index + 1} scroll-reveal`}
-              key={work.title}
+              key={work.id}
               style={getRevealStyle(index)}
             >
               <div className="work-image">
                 <img
                   src={work.image}
-                  alt={`${work.title}, ${work.medium}`}
+                  alt={work.altText || `${work.title}, ${work.medium}`}
                   decoding="async"
                   loading={index < 2 ? "eager" : "lazy"}
                 />
@@ -395,16 +460,34 @@ export default function Home() {
           <div className="contact-details">
             <p>
               <span>Correo</span>
-              A definir
+              {settings.contact_email ? (
+                <a href={`mailto:${settings.contact_email}`}>{settings.contact_email}</a>
+              ) : (
+                "A definir"
+              )}
             </p>
             <p>
               <span>Instagram</span>
-              A definir
+              {settings.instagram_url ? (
+                <a href={settings.instagram_url} target="_blank" rel="noreferrer">
+                  Ver Instagram
+                </a>
+              ) : (
+                "A definir"
+              )}
             </p>
             <p>
               <span>Ubicación</span>
-              Mendoza, Argentina
+              {settings.artist_location || "A definir"}
             </p>
+            {settings.whatsapp_url && (
+              <p>
+                <span>WhatsApp</span>
+                <a href={settings.whatsapp_url} target="_blank" rel="noreferrer">
+                  Escribir por WhatsApp
+                </a>
+              </p>
+            )}
           </div>
         </div>
 
@@ -456,7 +539,7 @@ export default function Home() {
 
       <footer>
         <a className="brand" href="#inicio">
-          Nombre de la artista
+          {settings.artist_name}
         </a>
         <p>Arte realista · Obras originales · Retratos por encargo</p>
         <p>© 2026 · Todos los derechos reservados</p>

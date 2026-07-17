@@ -1,0 +1,65 @@
+{
+  "works": [
+    {
+      "id": 1,
+      "title": "Tarde en la cordillera",
+      "category": "Paisajes",
+      "image": "/art/hero-paisaje.webp",
+      "altText": "Pintura realista de un paisaje de montaña y viñedos",
+      "medium": "Óleo sobre lienzo",
+      "size": "90 x 120 cm",
+      "status": "Disponible"
+    },
+    {
+      "id": 2,
+      "title": "Luz serena",
+      "category": "Retratos",
+      "image": "/art/retrato-mujer.webp",
+      "altText": "Retrato al óleo de una mujer de perfil",
+      "medium": "Óleo sobre lienzo",
+      "size": "60 x 50 cm",
+      "status": "Vendida"
+    },
+    {
+      "id": 3,
+      "title": "Silencio de otoño",
+      "category": "Naturaleza",
+      "image": "/art/bodegon.webp",
+      "altText": "Bodegón realista de tonos cálidos",
+      "medium": "Óleo sobre tabla",
+      "size": "50 x 40 cm",
+      "status": "Disponible"
+    },
+    {
+      "id": 4,
+      "title": "Raíces",
+      "category": "Retratos",
+      "image": "/art/retrato-hombre.webp",
+      "altText": "Retrato realista de un hombre",
+      "medium": "Óleo sobre lienzo",
+      "size": "70 x 55 cm",
+      "status": "Obra por encargo"
+    },
+    {
+      "id": 5,
+      "title": "Camino al viñedo",
+      "category": "Paisajes",
+      "image": "/art/paisaje-camino.webp",
+      "altText": "Paisaje pintado de un camino entre viñedos",
+      "medium": "Óleo sobre lienzo",
+      "size": "65 x 90 cm",
+      "status": "Disponible"
+    },
+    {
+      "id": 6,
+      "title": "Memoria de flores",
+      "category": "Naturaleza",
+      "image": "/art/flores.webp",
+      "altText": "Pintura realista de flores en una composición serena",
+      "medium": "Técnica mixta",
+      "size": "55 x 45 cm",
+      "status": "Disponible"
+    }
+  ]
+}
+

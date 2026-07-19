@@ -5,11 +5,16 @@ import {
   FormEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
 type Category = string;
-type RevealStyle = CSSProperties & { "--reveal-delay"?: string };
+type RevealStyle = CSSProperties & {
+  "--reveal-delay"?: string;
+  "--art-drift-x"?: string;
+  "--art-drift-y"?: string;
+};
 
 interface Work {
   id: number;
@@ -29,6 +34,7 @@ interface SiteSettings {
   artist_photo: string;
   contact_email: string;
   instagram_url: string;
+  facebook_url: string;
   whatsapp_url: string;
 }
 
@@ -39,6 +45,7 @@ const defaultSettings: SiteSettings = {
   artist_photo: "",
   contact_email: "",
   instagram_url: "",
+  facebook_url: "",
   whatsapp_url: "",
 };
 
@@ -51,7 +58,17 @@ const navLinks = [
 ];
 
 function getRevealStyle(index: number): RevealStyle {
-  return { "--reveal-delay": `${Math.min(index, 5) * 70}ms` };
+  const drift = [
+    ["-0.45%", "-0.3%"],
+    ["0.35%", "-0.45%"],
+    ["-0.25%", "0.35%"],
+  ][index % 3];
+
+  return {
+    "--reveal-delay": `${Math.min(index, 5) * 70}ms`,
+    "--art-drift-x": drift[0],
+    "--art-drift-y": drift[1],
+  };
 }
 
 export default function Home() {
@@ -61,6 +78,9 @@ export default function Home() {
   const [works, setWorks] = useState<Work[]>([]);
   const [catalogMessage, setCatalogMessage] = useState("Cargando obras…");
   const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
+  const [selectedWork, setSelectedWork] = useState<Work | null>(null);
+  const lightboxRef = useRef<HTMLDivElement>(null);
+  const lightboxCloseRef = useRef<HTMLButtonElement>(null);
 
   const categories = useMemo(
     () => ["Todas", ...Array.from(new Set(works.map((work) => work.category)))],
@@ -74,6 +94,7 @@ export default function Home() {
         : works.filter((work) => work.category === category),
     [category, works],
   );
+  const lightboxOpen = selectedWork !== null;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -82,6 +103,7 @@ export default function Home() {
       try {
         let response = await fetch("/api/works.php", {
           headers: { Accept: "application/json" },
+          cache: "no-store",
           signal: controller.signal,
         });
         if (!response.ok) {
@@ -120,6 +142,7 @@ export default function Home() {
       try {
         let response = await fetch("/api/settings.php", {
           headers: { Accept: "application/json" },
+          cache: "no-store",
           signal: controller.signal,
         });
         if (!response.ok) {
@@ -158,6 +181,67 @@ export default function Home() {
 
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [menuOpen]);
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    lightboxCloseRef.current?.focus();
+
+    function showRelativeWork(offset: number) {
+      setSelectedWork((current) => {
+        if (!current || visibleWorks.length < 2) return current;
+        const currentIndex = visibleWorks.findIndex(
+          (work) => work.id === current.id,
+        );
+        const nextIndex =
+          (currentIndex + offset + visibleWorks.length) % visibleWorks.length;
+        return visibleWorks[nextIndex];
+      });
+    }
+
+    function handleLightboxKeydown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setSelectedWork(null);
+        return;
+      }
+      if (event.key === "ArrowRight") {
+        showRelativeWork(1);
+        return;
+      }
+      if (event.key === "ArrowLeft") {
+        showRelativeWork(-1);
+        return;
+      }
+      if (event.key !== "Tab") return;
+
+      const controls = Array.from(
+        lightboxRef.current?.querySelectorAll<HTMLButtonElement>(
+          "button:not([disabled])",
+        ) ?? [],
+      );
+      if (controls.length === 0) return;
+
+      const firstControl = controls[0];
+      const lastControl = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === firstControl) {
+        event.preventDefault();
+        lastControl.focus();
+      } else if (!event.shiftKey && document.activeElement === lastControl) {
+        event.preventDefault();
+        firstControl.focus();
+      }
+    }
+
+    window.addEventListener("keydown", handleLightboxKeydown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleLightboxKeydown);
+      previousFocus?.focus();
+    };
+  }, [lightboxOpen, visibleWorks]);
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia(
@@ -294,7 +378,7 @@ export default function Home() {
               decoding="async"
               loading="eager"
             />
-            <span>Estudio de retrato</span>
+            <span>Retrato original</span>
           </div>
           <p className="hero-note">Cada pincelada, una memoria</p>
         </div>
@@ -323,9 +407,10 @@ export default function Home() {
             </div>
           )}
           <div>
-            {settings.artist_bio.split(/\n+/).map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
+            {settings.artist_bio.trim() &&
+              settings.artist_bio.split(/\n+/).map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
             <a className="text-link" href="#contacto">
               Consultar por obras o encargos <span aria-hidden="true">↗</span>
             </a>
@@ -370,30 +455,117 @@ export default function Home() {
               key={work.id}
               style={getRevealStyle(index)}
             >
-              <div className="work-image">
-                <img
-                  src={work.image}
-                  alt={work.altText || `${work.title}, ${work.medium}`}
-                  decoding="async"
-                  loading={index < 2 ? "eager" : "lazy"}
-                />
-                <span>{work.status}</span>
-              </div>
-              <div className="work-caption">
-                <div>
-                  <p>{work.category}</p>
-                  <h3>{work.title}</h3>
+              <button
+                className="work-open"
+                type="button"
+                aria-label={`Ampliar obra: ${work.title}`}
+                onClick={() => setSelectedWork(work)}
+              >
+                <div className="work-image">
+                  <img
+                    src={work.image}
+                    alt={work.altText || `${work.title}, ${work.medium}`}
+                    decoding="async"
+                    loading={index < 2 ? "eager" : "lazy"}
+                  />
+                  <span>{work.status}</span>
                 </div>
-                <p>
-                  {work.medium}
-                  <br />
-                  {work.size}
-                </p>
-              </div>
+                <div className="work-caption">
+                  <div>
+                    <p>{work.category}</p>
+                    <h3>{work.title}</h3>
+                  </div>
+                  <p className="work-specs">
+                    <span>{work.medium}</span>
+                    <span>{work.size}</span>
+                  </p>
+                </div>
+              </button>
             </article>
           ))}
         </div>
       </section>
+
+      {selectedWork && (
+        <div
+          className="art-lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="lightbox-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setSelectedWork(null);
+          }}
+        >
+          <div className="art-lightbox-panel" ref={lightboxRef}>
+            <button
+              className="lightbox-close"
+              type="button"
+              ref={lightboxCloseRef}
+              onClick={() => setSelectedWork(null)}
+              aria-label="Cerrar obra ampliada"
+            >
+              Cerrar <span aria-hidden="true">×</span>
+            </button>
+
+            <div className="lightbox-stage">
+              <img
+                key={selectedWork.id}
+                src={selectedWork.image}
+                alt={selectedWork.altText || selectedWork.title}
+                decoding="async"
+              />
+            </div>
+
+            <div className="lightbox-details">
+              <p>{selectedWork.category}</p>
+              <h2 id="lightbox-title">{selectedWork.title}</h2>
+              <p className="lightbox-specs">
+                {selectedWork.medium} · {selectedWork.size}
+              </p>
+              <p className="lightbox-counter" aria-live="polite">
+                {visibleWorks.findIndex((work) => work.id === selectedWork.id) +
+                  1}{" "}
+                de {visibleWorks.length}
+              </p>
+              {visibleWorks.length > 1 && (
+                <div className="lightbox-navigation">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const currentIndex = visibleWorks.findIndex(
+                        (work) => work.id === selectedWork.id,
+                      );
+                      setSelectedWork(
+                        visibleWorks[
+                          (currentIndex - 1 + visibleWorks.length) %
+                            visibleWorks.length
+                        ],
+                      );
+                    }}
+                    aria-label="Ver obra anterior"
+                  >
+                    <span aria-hidden="true">←</span> Anterior
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const currentIndex = visibleWorks.findIndex(
+                        (work) => work.id === selectedWork.id,
+                      );
+                      setSelectedWork(
+                        visibleWorks[(currentIndex + 1) % visibleWorks.length],
+                      );
+                    }}
+                    aria-label="Ver obra siguiente"
+                  >
+                    Siguiente <span aria-hidden="true">→</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <section className="commissions" id="encargos">
         <div className="commission-image scroll-reveal">
@@ -457,38 +629,56 @@ export default function Home() {
             Escribí para consultar por obras disponibles, retratos
             personalizados o una pieza pensada especialmente para un recuerdo.
           </p>
-          <div className="contact-details">
-            <p>
-              <span>Correo</span>
-              {settings.contact_email ? (
-                <a href={`mailto:${settings.contact_email}`}>{settings.contact_email}</a>
-              ) : (
-                "A definir"
+          {(settings.contact_email ||
+            settings.instagram_url ||
+            settings.facebook_url ||
+            settings.whatsapp_url ||
+            settings.artist_location) && (
+            <div className="contact-details">
+              {settings.contact_email && (
+                <p>
+                  <span>Correo</span>
+                  <a href={`mailto:${settings.contact_email}`}>
+                    {settings.contact_email}
+                  </a>
+                </p>
               )}
-            </p>
-            <p>
-              <span>Instagram</span>
-              {settings.instagram_url ? (
-                <a href={settings.instagram_url} target="_blank" rel="noreferrer">
-                  Ver Instagram
-                </a>
-              ) : (
-                "A definir"
+              {settings.instagram_url && (
+                <p>
+                  <span>Instagram</span>
+                  <a
+                    href={settings.instagram_url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Ver Instagram
+                  </a>
+                </p>
               )}
-            </p>
-            <p>
-              <span>Ubicación</span>
-              {settings.artist_location || "A definir"}
-            </p>
-            {settings.whatsapp_url && (
-              <p>
-                <span>WhatsApp</span>
-                <a href={settings.whatsapp_url} target="_blank" rel="noreferrer">
-                  Escribir por WhatsApp
-                </a>
-              </p>
-            )}
-          </div>
+              {settings.facebook_url && (
+                <p>
+                  <span>Facebook</span>
+                  <a href={settings.facebook_url} target="_blank" rel="noreferrer">
+                    Ver Facebook
+                  </a>
+                </p>
+              )}
+              {settings.whatsapp_url && (
+                <p>
+                  <span>WhatsApp</span>
+                  <a href={settings.whatsapp_url} target="_blank" rel="noreferrer">
+                    Escribir por WhatsApp
+                  </a>
+                </p>
+              )}
+              {settings.artist_location && (
+                <p>
+                  <span>Ubicación</span>
+                  {settings.artist_location}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         <form className="contact-form" onSubmit={submitContact}>
@@ -542,7 +732,10 @@ export default function Home() {
           {settings.artist_name}
         </a>
         <p>Arte realista · Obras originales · Retratos por encargo</p>
-        <p>© 2026 · Todos los derechos reservados</p>
+        <div className="footer-meta">
+          <p>© 2026 · Todos los derechos reservados</p>
+          <a className="admin-access" href="/admin/">Administrar sitio</a>
+        </div>
       </footer>
     </main>
   );

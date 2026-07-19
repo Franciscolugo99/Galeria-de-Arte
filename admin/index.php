@@ -1,5 +1,14 @@
 <?php
 declare(strict_types=1);
+
+$requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+$requestPath = parse_url($requestUri, PHP_URL_PATH);
+if (is_string($requestPath) && str_ends_with($requestPath, '/admin')) {
+    $query = parse_url($requestUri, PHP_URL_QUERY);
+    header('Location: ' . $requestPath . '/' . (is_string($query) && $query !== '' ? '?' . $query : ''), true, 308);
+    exit;
+}
+
 require dirname(__DIR__) . '/api/bootstrap.php';
 
 $user = current_user();
@@ -19,8 +28,8 @@ $boot = [
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" type="image/svg+xml" href="../public/favicon.svg?v=20260713-1">
-  <title>Estudio | Administración de obras</title>
-  <link rel="stylesheet" href="admin.css?v=20260713-7">
+  <title>Administración de obras</title>
+  <link rel="stylesheet" href="admin.css?v=20260718-8">
 </head>
 <body>
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -33,7 +42,7 @@ $boot = [
       <p class="wordmark">Nombre de la artista</p>
       <div class="access-copy">
         <p class="eyebrow" id="accessEyebrow"><?= $userCount === 0 ? 'Primer ingreso' : 'Acceso privado' ?></p>
-        <h1 id="accessTitle"><?= $userCount === 0 ? 'Creá tu acceso al estudio' : 'Volvé a tu catálogo' ?></h1>
+        <h1 id="accessTitle"><?= $userCount === 0 ? 'Creá tu acceso privado' : 'Volvé a tu catálogo' ?></h1>
         <p id="accessDescription">
           <?= $userCount === 0
               ? 'Este paso se realiza una sola vez. Elegí el correo y la contraseña que vas a usar para administrar tus obras.'
@@ -67,7 +76,7 @@ $boot = [
     <aside class="sidebar" id="sidebar">
       <div>
         <p class="wordmark">Nombre de la artista</p>
-        <p class="sidebar-caption">Estudio</p>
+        <p class="sidebar-caption">Artista independiente</p>
       </div>
       <nav aria-label="Administración">
         <a class="active" href="#catalogo" aria-current="page" data-admin-view="works">
@@ -77,11 +86,11 @@ $boot = [
           <span aria-hidden="true">02</span> Categorías
         </a>
         <a href="#estudio" data-admin-view="settings">
-          <span aria-hidden="true">03</span> Datos del estudio
+          <span aria-hidden="true">03</span> Datos de la artista
         </a>
       </nav>
       <div class="sidebar-footer">
-        <a href="../" target="_blank" rel="noreferrer">Ver sitio público <span aria-hidden="true">↗</span></a>
+        <a href="../" id="publicSiteLink" target="_blank" rel="noreferrer">Ver sitio público <span aria-hidden="true">↗</span></a>
         <button type="button" id="logoutButton">Cerrar sesión</button>
       </div>
     </aside>
@@ -105,6 +114,19 @@ $boot = [
           <p><strong id="publishedCount">0</strong><span>Publicadas</span></p>
           <p><strong id="draftCount">0</strong><span>Borradores</span></p>
         </div>
+
+        <section class="storage-usage" id="storageUsage" aria-labelledby="storageTitle" aria-describedby="storageDetail">
+          <div class="storage-heading">
+            <div>
+              <h2 id="storageTitle">Almacenamiento de imágenes</h2>
+              <p id="storageDetail">Calculando el espacio utilizado…</p>
+            </div>
+            <strong id="storagePercentage" aria-hidden="true">0%</strong>
+          </div>
+          <progress id="storageProgress" max="100" value="0" aria-label="Porcentaje de almacenamiento utilizado">0%</progress>
+          <p class="storage-note">Incluye originales y versiones optimizadas de la galería. No incluye correos ni otros archivos del hosting.</p>
+          <p class="storage-alert" id="storageAlert" role="status" hidden></p>
+        </section>
 
         <div class="catalog-toolbar">
           <label class="search-field">
@@ -137,6 +159,14 @@ $boot = [
             <h2 id="editorTitle">Agregar una obra</h2>
           </div>
           <p class="save-status" id="saveStatus" role="status"></p>
+        </div>
+
+        <div class="draft-notice" id="draftNotice" hidden>
+          <div>
+            <strong>Recuperamos tus cambios</strong>
+            <p id="draftNoticeText"></p>
+          </div>
+          <button type="button" id="discardDraftButton">Descartar cambios</button>
         </div>
 
         <form id="workForm" class="work-form" novalidate>
@@ -184,9 +214,21 @@ $boot = [
               <label class="upload-zone" id="uploadZone">
                 <input name="images" type="file" accept="image/jpeg,image/png,image/webp" multiple>
                 <span class="upload-symbol" aria-hidden="true">＋</span>
-                <strong>Elegir fotografías</strong>
-                <small>JPG, PNG o WebP, hasta 15 MB cada una</small>
+                <strong id="uploadActionText">Elegir fotografías</strong>
+                <small id="uploadHelpText">JPG, PNG o WebP · máximo 15 MB por imagen · no acepta videos</small>
               </label>
+              <div class="selected-image-list" id="selectedImageList" aria-label="Vista previa de las fotografías seleccionadas" hidden></div>
+              <div class="upload-status" id="uploadStatus" role="status" aria-live="polite" hidden>
+                <div class="upload-status-line">
+                  <span class="upload-status-icon" aria-hidden="true"></span>
+                  <span id="uploadStatusText"></span>
+                  <span class="upload-status-side">
+                    <strong id="uploadStatusValue"></strong>
+                    <button id="uploadRetryButton" type="button" hidden>Elegir otro archivo</button>
+                  </span>
+                </div>
+                <progress id="uploadProgress" max="100" value="0" aria-label="Progreso de carga" hidden></progress>
+              </div>
               <div class="image-list" id="imageList"></div>
             </fieldset>
           </div>
@@ -261,7 +303,7 @@ $boot = [
         <div class="management-intro">
           <div>
             <p class="eyebrow">Sitio público</p>
-            <h2>Datos del estudio</h2>
+            <h2>Datos de la artista</h2>
           </div>
           <p>Estos datos se muestran en la presentación y en la sección de contacto.</p>
         </div>
@@ -275,12 +317,14 @@ $boot = [
                 <input name="artist_name" maxlength="120" required placeholder="Nombre de la artista">
               </label>
               <label>
-                Presentación
-                <textarea name="artist_bio" rows="7" maxlength="3000" placeholder="Una presentación breve, personal y profesional."></textarea>
+                Descripción breve de la artista
+                <textarea name="artist_bio" rows="6" maxlength="3000" placeholder="Contá brevemente su recorrido, inspiración y forma de trabajar."></textarea>
+                <small>Opcional. Se muestra en la sección “Sobre mí”; podés escribir más de un párrafo.</small>
               </label>
               <label>
                 Ubicación
                 <input name="artist_location" maxlength="160" placeholder="Ej. Mendoza, Argentina">
+                <small>Opcional. Si queda vacía, no se muestra.</small>
               </label>
             </fieldset>
 
@@ -290,6 +334,7 @@ $boot = [
                 <label>
                   Correo público
                   <input name="contact_email" type="email" placeholder="contacto@tudominio.com">
+                  <small>Opcional. Se muestra como medio de contacto.</small>
                 </label>
                 <label>
                   Correo de recuperación
@@ -299,10 +344,17 @@ $boot = [
                 <label>
                   Instagram
                   <input name="instagram_url" type="url" placeholder="https://instagram.com/usuario">
+                  <small>Opcional. Pegá el enlace completo.</small>
+                </label>
+                <label>
+                  Facebook
+                  <input name="facebook_url" type="url" placeholder="https://facebook.com/usuario">
+                  <small>Opcional. Pegá el enlace completo.</small>
                 </label>
                 <label>
                   WhatsApp
-                  <input name="whatsapp_url" type="url" placeholder="https://wa.me/549…">
+                  <input name="whatsapp_url" type="url" placeholder="https://wa.me/5492610000000">
+                  <small>Opcional. Usá el enlace de WhatsApp con código de país.</small>
                 </label>
               </div>
             </fieldset>
@@ -342,6 +394,6 @@ $boot = [
   </template>
 
   <script>window.__ADMIN_BOOT__ = <?= json_encode($boot, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;</script>
-  <script src="admin.js?v=20260713-8" defer></script>
+  <script src="admin.js?v=20260718-15" defer></script>
 </body>
 </html>

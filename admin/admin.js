@@ -9,6 +9,10 @@
   let activeStatus = "";
   let editingId = null;
   let searchTimer = null;
+  let selectedPreviewUrls = [];
+  let draftSaveTimer = null;
+  let activeDraftKey = "new";
+  let suppressDraftSave = false;
 
   const byId = (id) => document.getElementById(id);
   const catalogView = byId("catalogView");
@@ -18,6 +22,17 @@
   const workForm = byId("workForm");
   const saveButton = byId("saveButton");
   const saveStatus = byId("saveStatus");
+  const uploadStatus = byId("uploadStatus");
+  const uploadProgress = byId("uploadProgress");
+  const allowedImageTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+  const allowedImageExtensions = new Set(["jpg", "jpeg", "png", "webp"]);
+  const maxImageBytes = 15 * 1024 * 1024;
+  const draftStorageKey = "galeria_admin_work_drafts_v1";
+  const draftFieldNames = [
+    "title", "categoryId", "year", "technique", "widthCm", "heightCm",
+    "description", "publicationStatus", "availabilityStatus", "visibility",
+    "isFeatured", "featuredOrder",
+  ];
 
   function isLocalNetworkHost(hostname) {
     return (
@@ -32,11 +47,10 @@
     if (!path || !path.startsWith("/")) return path;
     const localProject = window.location.pathname.match(/^\/(.+?)\/admin(?:\/|$)/);
     if (
-      localProject &&
       isLocalNetworkHost(window.location.hostname) &&
       (path.startsWith("/art/") || path.startsWith("/uploads/"))
     ) {
-      return `/${localProject[1]}/public${path}`;
+      return localProject ? `/${localProject[1]}/public${path}` : `/public${path}`;
     }
     return path;
   }
@@ -68,6 +82,272 @@
       button.textContent = button.dataset.label;
     }
     button.disabled = busy;
+  }
+
+  function readDrafts() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(draftStorageKey) || "{}");
+      return stored && typeof stored === "object" ? stored : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function writeDrafts(drafts) {
+    try {
+      const entries = Object.entries(drafts)
+        .sort(([, first], [, second]) => (second.savedAt || 0) - (first.savedAt || 0))
+        .slice(0, 12);
+      localStorage.setItem(draftStorageKey, JSON.stringify(Object.fromEntries(entries)));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function draftValues() {
+    return Object.fromEntries(draftFieldNames.map((name) => {
+      const field = workForm.elements.namedItem(name);
+      return [name, field.type === "checkbox" ? field.checked : field.value];
+    }));
+  }
+
+  function hasMeaningfulDraft(values, hasImages) {
+    return hasImages || Boolean(
+      values.title || values.categoryId || values.year || values.technique ||
+      values.widthCm || values.heightCm || values.description || values.isFeatured ||
+      values.publicationStatus === "published" || values.availabilityStatus !== "available" ||
+      values.visibility !== "public" || Number(values.featuredOrder) !== 0
+    );
+  }
+
+  function persistLocalDraft() {
+    if (suppressDraftSave || editorView.hidden) return;
+    const drafts = readDrafts();
+    const values = draftValues();
+    const hasImages = workForm.elements.images.files.length > 0;
+    if (activeDraftKey === "new" && !hasMeaningfulDraft(values, hasImages)) {
+      delete drafts[activeDraftKey];
+      writeDrafts(drafts);
+      return;
+    }
+    drafts[activeDraftKey] = { values, hasImages, savedAt: Date.now() };
+    if (writeDrafts(drafts) && saveStatus.textContent === "") {
+      saveStatus.textContent = "Cambios guardados automáticamente en este dispositivo.";
+    }
+  }
+
+  function scheduleDraftSave() {
+    if (suppressDraftSave) return;
+    window.clearTimeout(draftSaveTimer);
+    draftSaveTimer = window.setTimeout(persistLocalDraft, 500);
+  }
+
+  function flushDraftSave() {
+    window.clearTimeout(draftSaveTimer);
+    persistLocalDraft();
+  }
+
+  function clearLocalDraft(key = activeDraftKey) {
+    const drafts = readDrafts();
+    delete drafts[key];
+    writeDrafts(drafts);
+    byId("draftNotice").hidden = true;
+  }
+
+  function restoreLocalDraft() {
+    const draft = readDrafts()[activeDraftKey];
+    if (!draft?.values) return false;
+    Object.entries(draft.values).forEach(([name, value]) => formValue(name, value));
+    toggleFeaturedOrder();
+    updateSaveLabel();
+
+    const savedTime = new Intl.DateTimeFormat("es-AR", { dateStyle: "short", timeStyle: "short" })
+      .format(new Date(draft.savedAt));
+    byId("draftNoticeText").textContent = draft.hasImages
+      ? `Guardados el ${savedTime}. Los textos se restauraron; por seguridad, volvé a seleccionar las fotografías.`
+      : `Guardados automáticamente en este dispositivo el ${savedTime}.`;
+    byId("draftNotice").hidden = false;
+    saveStatus.textContent = "";
+    return true;
+  }
+
+  function readableSize(bytes) {
+    if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+    if (bytes < 1000 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1).replace(".0", "")} MB`;
+    return `${(bytes / 1_000_000_000).toFixed(2).replace(/0+$/, "").replace(/\.$/, "")} GB`;
+  }
+
+  async function loadStorageUsage() {
+    const container = byId("storageUsage");
+    try {
+      const { storage } = await request("/admin/storage.php");
+      const percentage = Number(storage.percentage) || 0;
+      container.dataset.level = storage.level;
+      byId("storageProgress").value = percentage;
+      byId("storageProgress").textContent = `${percentage}%`;
+      byId("storagePercentage").textContent = `${percentage.toLocaleString("es-AR", { maximumFractionDigits: 1 })}%`;
+      byId("storageDetail").textContent = `${readableSize(storage.usedBytes)} utilizados de ${readableSize(storage.capacityBytes)}`;
+
+      const alert = byId("storageAlert");
+      alert.hidden = storage.level === "normal";
+      alert.textContent = storage.level === "critical"
+        ? "El almacenamiento está casi completo. Contactá al administrador antes de cargar más fotografías."
+        : "El almacenamiento está próximo a completarse. Contactá al administrador para ampliar u optimizar el espacio.";
+    } catch {
+      container.dataset.level = "unavailable";
+      byId("storageDetail").textContent = "No pudimos calcular el espacio utilizado en este momento.";
+      byId("storageAlert").hidden = true;
+    }
+  }
+
+  function clearSelectedPreviews() {
+    selectedPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+    selectedPreviewUrls = [];
+    const list = byId("selectedImageList");
+    list.replaceChildren();
+    list.hidden = true;
+    list.dataset.state = "";
+  }
+
+  function renderSelectedPreviews(files) {
+    clearSelectedPreviews();
+    const list = byId("selectedImageList");
+    const fragment = document.createDocumentFragment();
+    files.slice(0, 6).forEach((file, index) => {
+      const item = document.createElement("article");
+      item.className = "selected-image-preview";
+      item.style.setProperty("--preview-delay", `${Math.min(index, 5) * 60}ms`);
+
+      const frame = document.createElement("div");
+      frame.className = "selected-image-frame";
+      const image = new Image();
+      const url = URL.createObjectURL(file);
+      selectedPreviewUrls.push(url);
+      image.src = url;
+      image.alt = `Vista previa de ${file.name}`;
+      frame.append(image);
+
+      const details = document.createElement("div");
+      const name = document.createElement("strong");
+      name.textContent = file.name;
+      name.title = file.name;
+      const size = document.createElement("small");
+      size.textContent = readableSize(file.size);
+      details.append(name, size);
+      item.append(frame, details);
+      fragment.append(item);
+    });
+
+    if (files.length > 6) {
+      const remainder = document.createElement("p");
+      remainder.className = "selected-image-remainder";
+      remainder.textContent = `+${files.length - 6} más`;
+      fragment.append(remainder);
+    }
+    list.append(fragment);
+    list.hidden = false;
+    list.dataset.state = "ready";
+  }
+
+  function resetUploadStatus() {
+    clearSelectedPreviews();
+    uploadStatus.hidden = true;
+    uploadStatus.dataset.state = "";
+    byId("uploadStatusText").textContent = "";
+    byId("uploadStatusValue").textContent = "";
+    byId("uploadRetryButton").hidden = true;
+    uploadProgress.hidden = true;
+    uploadProgress.value = 0;
+    byId("uploadZone").classList.remove("has-files");
+    byId("uploadActionText").textContent = "Elegir fotografías";
+    byId("uploadHelpText").textContent = "JPG, PNG o WebP · máximo 15 MB por imagen · no acepta videos";
+  }
+
+  function showUploadState(state, message, value = "", progress = null) {
+    uploadStatus.hidden = false;
+    uploadStatus.dataset.state = state;
+    byId("selectedImageList").dataset.state = state;
+    byId("uploadStatusText").textContent = message;
+    byId("uploadStatusValue").textContent = value;
+    byId("uploadRetryButton").hidden = state !== "error";
+    uploadProgress.hidden = progress === false;
+    if (progress === null) uploadProgress.removeAttribute("value");
+    else if (typeof progress === "number") uploadProgress.value = progress;
+  }
+
+  function handleSelectedImages() {
+    const files = Array.from(workForm.elements.images.files || []);
+    if (!files.length) {
+      resetUploadStatus();
+      return;
+    }
+    const invalidFile = files.find((file) => {
+      const extension = file.name.includes(".") ? file.name.split(".").pop().toLowerCase() : "";
+      return !allowedImageTypes.has(file.type) && !allowedImageExtensions.has(extension);
+    });
+    if (invalidFile) {
+      clearSelectedPreviews();
+      workForm.elements.images.value = "";
+      byId("uploadZone").classList.remove("has-files");
+      byId("uploadActionText").textContent = "Elegir fotografías compatibles";
+      byId("uploadHelpText").textContent = "Usá imágenes JPG, PNG o WebP. Los archivos de video, como AVI, no son compatibles.";
+      showUploadState("error", `“${invalidFile.name}” no es una imagen compatible.`, "", false);
+      return;
+    }
+    const oversizedFile = files.find((file) => file.size > maxImageBytes);
+    if (oversizedFile) {
+      clearSelectedPreviews();
+      workForm.elements.images.value = "";
+      byId("uploadZone").classList.remove("has-files");
+      byId("uploadActionText").textContent = "Elegir una imagen más liviana";
+      byId("uploadHelpText").textContent = "Cada imagen puede pesar hasta 15 MB.";
+      showUploadState("error", `“${oversizedFile.name}” supera el máximo de 15 MB.`, "", false);
+      return;
+    }
+    const totalBytes = files.reduce((total, file) => total + file.size, 0);
+    renderSelectedPreviews(files);
+    byId("uploadZone").classList.add("has-files");
+    byId("uploadActionText").textContent = "Cambiar selección";
+    byId("uploadHelpText").textContent = `${files.length} ${files.length === 1 ? "fotografía" : "fotografías"} · ${readableSize(totalBytes)} en total`;
+    uploadStatus.hidden = true;
+  }
+
+  function uploadImages(formData) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `${api}/admin/images.php`);
+      xhr.withCredentials = true;
+      xhr.setRequestHeader("X-CSRF-Token", csrf);
+      showUploadState("uploading", "Subiendo fotografías…", "0%", 0);
+
+      xhr.upload.addEventListener("progress", (event) => {
+        if (!event.lengthComputable) return;
+        const percent = Math.min(100, Math.round((event.loaded / event.total) * 100));
+        showUploadState("uploading", "Subiendo fotografías…", `${percent}%`, percent);
+      });
+      xhr.upload.addEventListener("load", () => {
+        showUploadState("processing", "Carga completa. Optimizando imágenes…", "Procesando", null);
+      });
+      xhr.addEventListener("load", () => {
+        let payload;
+        try {
+          payload = JSON.parse(xhr.responseText);
+        } catch {
+          payload = { error: "La respuesta del servidor no es válida." };
+        }
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(payload);
+          return;
+        }
+        const error = new Error(payload.error || "No pudimos cargar las fotografías.");
+        error.status = xhr.status;
+        reject(error);
+      });
+      xhr.addEventListener("error", () => reject(new Error("Se interrumpió la carga. Revisá la conexión e intentá nuevamente.")));
+      xhr.addEventListener("abort", () => reject(new Error("La carga fue cancelada.")));
+      xhr.send(formData);
+    });
   }
 
   async function handleAccess(event) {
@@ -250,6 +530,7 @@
       const payload = await request("/admin/artist-image.php", { method: "POST", body: data });
       renderProfile(payload.url);
       message.textContent = payload.message;
+      loadStorageUsage();
     } catch (error) {
       message.textContent = error.message;
     } finally {
@@ -318,6 +599,7 @@
   }
 
   function showAdminView(view) {
+    if (!editorView.hidden) flushDraftSave();
     catalogView.hidden = view !== "works";
     editorView.hidden = true;
     categoriesView.hidden = view !== "categories";
@@ -327,7 +609,7 @@
     const labels = {
       works: ["Catálogo", "Obras"],
       categories: ["Organización", "Categorías"],
-      settings: ["Sitio público", "Datos del estudio"],
+      settings: ["Sitio público", "Datos de la artista"],
     };
     byId("topbarEyebrow").textContent = labels[view][0];
     byId("topbarTitle").textContent = labels[view][1];
@@ -344,9 +626,13 @@
   }
 
   async function openEditor(id = null) {
+    if (!editorView.hidden) flushDraftSave();
+    suppressDraftSave = true;
     editingId = id;
+    activeDraftKey = id ? `work:${id}` : "new";
     workForm.reset();
     byId("imageList").replaceChildren();
+    resetUploadStatus();
     formValue("id", id || "");
     formValue("publicationStatus", "draft");
     formValue("availabilityStatus", "available");
@@ -356,6 +642,7 @@
     byId("editorTitle").textContent = id ? "Cargando…" : "Agregar una obra";
     byId("deleteButton").hidden = !id;
     byId("newWorkButton").hidden = true;
+    byId("draftNotice").hidden = true;
     saveStatus.textContent = "";
     catalogView.hidden = true;
     categoriesView.hidden = true;
@@ -385,17 +672,23 @@
         toggleFeaturedOrder();
         renderImages(imagesPayload.images);
         updateSaveLabel();
+        restoreLocalDraft();
       } catch (error) {
         saveStatus.textContent = error.message;
+      } finally {
+        suppressDraftSave = false;
       }
     } else {
       toggleFeaturedOrder();
       updateSaveLabel();
+      restoreLocalDraft();
+      suppressDraftSave = false;
       setTimeout(() => workForm.elements.title.focus(), 0);
     }
   }
 
   function closeEditor() {
+    flushDraftSave();
     byId("newWorkButton").hidden = false;
     editingId = null;
     loadWorks();
@@ -426,6 +719,8 @@
     saveStatus.textContent = "";
     if (!workForm.reportValidity()) return;
     setBusy(saveButton, true, "Guardando…");
+    let uploadingFiles = false;
+    const savedDraftKey = activeDraftKey;
     try {
       const payload = await request("/admin/works.php", {
         method: editingId ? "PUT" : "POST",
@@ -439,18 +734,34 @@
 
       const files = workForm.elements.images.files;
       if (files.length) {
-        saveButton.textContent = "Optimizando fotos…";
+        uploadingFiles = true;
+        workForm.elements.images.disabled = true;
+        saveButton.textContent = "Subiendo fotos…";
         const formData = new FormData();
         formData.append("work_id", String(editingId));
         Array.from(files).forEach((file) => formData.append("images[]", file));
-        await request("/admin/images.php", { method: "POST", body: formData });
+        const uploadResult = await uploadImages(formData);
+        if (!uploadResult.uploaded) throw new Error("No se pudo procesar ninguna fotografía. Revisá los archivos e intentá nuevamente.");
+        uploadingFiles = false;
         workForm.elements.images.value = "";
+        const uploadedLabel = uploadResult.uploaded === 1 ? "1 fotografía cargada correctamente" : `${uploadResult.uploaded} fotografías cargadas correctamente`;
+        showUploadState("success", uploadedLabel, "Listo", 100);
+        byId("uploadZone").classList.remove("has-files");
+        byId("uploadActionText").textContent = "Agregar más fotografías";
+        byId("uploadHelpText").textContent = "JPG, PNG o WebP · máximo 15 MB por imagen · no acepta videos";
         await loadImages();
+        await loadStorageUsage();
+        clearSelectedPreviews();
+        uploadStatus.hidden = true;
       }
+      clearLocalDraft(savedDraftKey);
+      activeDraftKey = `work:${editingId}`;
       saveStatus.textContent = payload.message;
     } catch (error) {
       saveStatus.textContent = error.message;
+      if (uploadingFiles) showUploadState("error", error.message, "Reintentar", false);
     } finally {
+      workForm.elements.images.disabled = false;
       setBusy(saveButton, false);
       updateSaveLabel();
     }
@@ -503,7 +814,7 @@
     if (!window.confirm("¿Quitar esta fotografía de la obra?")) return;
     try {
       await request("/admin/images.php", { method: "DELETE", body: JSON.stringify({ imageId }) });
-      await loadImages();
+      await Promise.all([loadImages(), loadStorageUsage()]);
       saveStatus.textContent = "Fotografía eliminada.";
     } catch (error) {
       saveStatus.textContent = error.message;
@@ -516,7 +827,9 @@
     setBusy(button, true, "Eliminando…");
     try {
       await request("/admin/works.php", { method: "DELETE", body: JSON.stringify({ id: editingId }) });
+      clearLocalDraft(`work:${editingId}`);
       closeEditor();
+      loadStorageUsage();
     } catch (error) {
       saveStatus.textContent = error.message;
       setBusy(button, false);
@@ -532,14 +845,28 @@
   }
 
   function bindAdminEvents() {
+    if (isLocalNetworkHost(window.location.hostname) && window.location.port === "8091") {
+      byId("publicSiteLink").href = `${window.location.protocol}//${window.location.hostname}:5173/`;
+    }
     byId("newWorkButton").addEventListener("click", () => openEditor());
     document.querySelectorAll("[data-new-work]").forEach((button) => button.addEventListener("click", () => openEditor()));
     byId("backButton").addEventListener("click", closeEditor);
     workForm.addEventListener("submit", saveWork);
+    workForm.addEventListener("input", scheduleDraftSave);
+    workForm.addEventListener("change", scheduleDraftSave);
+    byId("discardDraftButton").addEventListener("click", () => {
+      if (!window.confirm("¿Descartar los cambios recuperados y volver a la última versión guardada?")) return;
+      const workId = editingId;
+      clearLocalDraft();
+      suppressDraftSave = true;
+      openEditor(workId);
+    });
     byId("deleteButton").addEventListener("click", deleteWork);
     byId("categoryCreateForm").addEventListener("submit", (event) => saveCategory(event));
     byId("settingsForm").addEventListener("submit", saveSettings);
     byId("profileImageInput").addEventListener("change", uploadProfileImage);
+    workForm.elements.images.addEventListener("change", handleSelectedImages);
+    byId("uploadRetryButton").addEventListener("click", () => workForm.elements.images.click());
     document.querySelectorAll("[data-admin-view]").forEach((link) => {
       link.addEventListener("click", (event) => {
         event.preventDefault();
@@ -590,7 +917,7 @@
   byId("accessForm").addEventListener("submit", handleAccess);
   if (boot.authenticated) {
     bindAdminEvents();
-    Promise.all([loadCategories(), loadWorks(), loadSettings()]).catch((error) => {
+    Promise.all([loadCategories(), loadWorks(), loadSettings(), loadStorageUsage()]).catch((error) => {
       byId("catalogStatus").textContent = error.message;
     });
   }

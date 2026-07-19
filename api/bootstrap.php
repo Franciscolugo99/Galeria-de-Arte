@@ -41,9 +41,50 @@ function app_config(): array
         'profile_upload_url' => getenv('GALLERY_PROFILE_UPLOAD_URL') ?: '/uploads/profile',
         'original_dir' => PROJECT_ROOT . '/storage/originals',
         'max_upload_bytes' => 15 * 1024 * 1024,
+        // Wiroos informa la capacidad del plan en GB decimales. Este valor
+        // representa el espacio reservado para la galería, no el disco de la PC.
+        'storage_capacity_bytes' => (int) (getenv('GALLERY_STORAGE_CAPACITY_BYTES') ?: 10_000_000_000),
     ];
 
     return $config;
+}
+
+function directory_size(string $directory): int
+{
+    if (!is_dir($directory)) {
+        return 0;
+    }
+
+    $bytes = 0;
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS)
+    );
+    foreach ($iterator as $file) {
+        if ($file->isFile() && !$file->isLink()) {
+            $bytes += $file->getSize();
+        }
+    }
+    return $bytes;
+}
+
+function gallery_storage_usage(): array
+{
+    $config = app_config();
+    $directories = array_unique([
+        $config['original_dir'],
+        $config['upload_dir'],
+        $config['profile_upload_dir'],
+    ]);
+    $usedBytes = array_sum(array_map('directory_size', $directories));
+    $capacityBytes = max(1, (int) ($config['storage_capacity_bytes'] ?? 10_000_000_000));
+    $percentage = min(100, round(($usedBytes / $capacityBytes) * 100, 2));
+
+    return [
+        'usedBytes' => $usedBytes,
+        'capacityBytes' => $capacityBytes,
+        'percentage' => $percentage,
+        'level' => $percentage >= 90 ? 'critical' : ($percentage >= 80 ? 'warning' : 'normal'),
+    ];
 }
 
 function settings_defaults(): array
@@ -56,6 +97,7 @@ function settings_defaults(): array
         'contact_email' => '',
         'recovery_email' => '',
         'instagram_url' => '',
+        'facebook_url' => '',
         'whatsapp_url' => '',
     ];
 }

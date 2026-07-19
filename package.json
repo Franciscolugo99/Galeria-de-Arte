@@ -11,6 +11,7 @@
     "dev:local": "vite",
     "build": "bash scripts/build-verified.sh",
     "build:local": "vinext build",
+    "build:wiroos": "node scripts/build-wiroos.mjs",
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
     "start:local": "vinext start",
     "test": "npm run build && node --test tests/rendered-html.test.mjs",

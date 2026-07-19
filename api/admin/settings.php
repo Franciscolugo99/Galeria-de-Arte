@@ -13,7 +13,7 @@ if ($method !== 'PUT') {
 
 verify_csrf();
 $input = json_input();
-$allowed = ['artist_name', 'artist_bio', 'artist_location', 'contact_email', 'recovery_email', 'instagram_url', 'whatsapp_url'];
+$allowed = ['artist_name', 'artist_bio', 'artist_location', 'contact_email', 'recovery_email', 'instagram_url', 'facebook_url', 'whatsapp_url'];
 $values = [];
 foreach ($allowed as $key) {
     $values[$key] = trim((string) ($input[$key] ?? ''));
@@ -30,7 +30,7 @@ foreach (['contact_email', 'recovery_email'] as $emailKey) {
         json_response(['error' => 'Revisá los correos ingresados.'], 422);
     }
 }
-foreach (['instagram_url', 'whatsapp_url'] as $urlKey) {
+foreach (['instagram_url', 'facebook_url', 'whatsapp_url'] as $urlKey) {
     if ($values[$urlKey] !== '' && (!filter_var($values[$urlKey], FILTER_VALIDATE_URL) || !preg_match('#^https?://#i', $values[$urlKey]))) {
         json_response(['error' => 'Las redes deben incluir la dirección completa, por ejemplo https://…'], 422);
     }
@@ -42,4 +42,4 @@ foreach ($values as $key => $value) {
     $statement->execute([$key, $value]);
 }
 db()->commit();
-json_response(['ok' => true, 'message' => 'Datos del estudio actualizados.', 'settings' => all_settings()]);
+json_response(['ok' => true, 'message' => 'Datos de la artista actualizados.', 'settings' => all_settings()]);

@@ -71,6 +71,10 @@ if (!$workId || empty($_FILES['images'])) {
     json_response(['error' => 'Seleccioná al menos una fotografía.'], 422);
 }
 
+if (!extension_loaded('gd') || !function_exists('imagecreatefromstring') || !function_exists('imagewebp')) {
+    json_response(['error' => 'El servidor no puede procesar imágenes en este momento. Contactá a la persona encargada del sitio.'], 503);
+}
+
 $workStatement = db()->prepare('SELECT title FROM works WHERE id = ?');
 $workStatement->execute([$workId]);
 $workTitle = $workStatement->fetchColumn();
@@ -98,8 +102,18 @@ $imageCount = (int) $existing->fetchColumn();
 $uploaded = [];
 
 foreach ($tmpNames as $index => $tmpName) {
-    if (($errors[$index] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+    $uploadError = $errors[$index] ?? UPLOAD_ERR_NO_FILE;
+    if ($uploadError === UPLOAD_ERR_NO_FILE) {
         continue;
+    }
+    if (in_array($uploadError, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)) {
+        json_response(['error' => 'Una fotografía supera el máximo permitido de 15 MB.'], 422);
+    }
+    if ($uploadError === UPLOAD_ERR_PARTIAL) {
+        json_response(['error' => 'Una fotografía no terminó de cargarse. Volvé a intentarlo.'], 422);
+    }
+    if ($uploadError !== UPLOAD_ERR_OK) {
+        json_response(['error' => 'No pudimos recibir una de las fotografías. Volvé a intentarlo.'], 422);
     }
     if (($sizes[$index] ?? 0) > $config['max_upload_bytes']) {
         json_response(['error' => 'Una fotografía supera el máximo de 15 MB.'], 422);

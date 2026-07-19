@@ -48,10 +48,13 @@ export default defineConfig(async () => {
       host: "0.0.0.0",
       allowedHosts: ["terminal.local"],
       proxy: {
-        "/api": {
-          target: "http://127.0.0.1",
+        "/admin": {
+          target: "http://127.0.0.1:8091",
           changeOrigin: true,
-          rewrite: (path) => `/Galeria-de-Arte${path}`,
+        },
+        "/api": {
+          target: "http://127.0.0.1:8091",
+          changeOrigin: true,
         },
       },
       ...(isCodexSeatbeltSandbox

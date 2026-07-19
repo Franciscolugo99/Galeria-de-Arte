@@ -46,6 +46,8 @@ yarn-error.log*
 # typescript
 next-env.d.ts
 /dist/
+/.wiroos-release/
+/.codex-remote-attachments/
 /.vinext/
 /.wrangler/
 /.sites-runtime/

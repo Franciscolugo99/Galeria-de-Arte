@@ -479,7 +479,7 @@
       if (field) field.value = value || "";
     });
     document.querySelectorAll(".wordmark").forEach((element) => {
-      element.textContent = payload.settings.artist_name || "Nombre de la artista";
+      element.textContent = payload.settings.artist_name || "Carina Donaire";
     });
     renderProfile(payload.settings.artist_photo);
   }
@@ -510,7 +510,7 @@
       const result = await request("/admin/settings.php", { method: "PUT", body: JSON.stringify(payload) });
       message.textContent = result.message;
       document.querySelectorAll(".wordmark").forEach((element) => {
-        element.textContent = result.settings.artist_name || "Nombre de la artista";
+        element.textContent = result.settings.artist_name || "Carina Donaire";
       });
     } catch (error) {
       message.textContent = error.message;

@@ -39,7 +39,7 @@ $boot = [
       <span>Archivo de obra</span>
     </div>
     <div class="access-panel">
-      <p class="wordmark">Nombre de la artista</p>
+      <p class="wordmark">Carina Donaire</p>
       <div class="access-copy">
         <p class="eyebrow" id="accessEyebrow"><?= $userCount === 0 ? 'Primer ingreso' : 'Acceso privado' ?></p>
         <h1 id="accessTitle"><?= $userCount === 0 ? 'Creá tu acceso privado' : 'Volvé a tu catálogo' ?></h1>
@@ -75,7 +75,7 @@ $boot = [
   <div class="admin-shell" id="adminView"<?= $user ? '' : ' hidden' ?>>
     <aside class="sidebar" id="sidebar">
       <div>
-        <p class="wordmark">Nombre de la artista</p>
+        <p class="wordmark">Carina Donaire</p>
         <p class="sidebar-caption">Artista independiente</p>
       </div>
       <nav aria-label="Administración">
@@ -314,7 +314,7 @@ $boot = [
               <legend>Información de la artista</legend>
               <label>
                 Nombre público
-                <input name="artist_name" maxlength="120" required placeholder="Nombre de la artista">
+                <input name="artist_name" maxlength="120" required placeholder="Carina Donaire">
               </label>
               <label>
                 Descripción breve de la artista

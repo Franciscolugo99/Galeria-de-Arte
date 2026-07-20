@@ -30,7 +30,7 @@ INSERT INTO work_images (work_id, image_path, thumbnail_path, alt_text, is_cover
 ON DUPLICATE KEY UPDATE image_path = VALUES(image_path);
 
 INSERT INTO settings (setting_key, setting_value) VALUES
-  ('artist_name', 'Nombre de la artista'),
+  ('artist_name', 'Carina Donaire'),
   ('artist_bio', 'Texto de presentación a definir con la artista.'),
   ('artist_location', 'Mendoza, Argentina'),
   ('artist_photo', ''),

@@ -39,7 +39,7 @@ interface SiteSettings {
 }
 
 const defaultSettings: SiteSettings = {
-  artist_name: "Nombre de la artista",
+  artist_name: "Carina Donaire",
   artist_bio: "Texto de presentación a definir con la artista.",
   artist_location: "Mendoza, Argentina",
   artist_photo: "",

@@ -61,7 +61,7 @@ const html = `<!doctype html>
   <meta name="robots" content="noindex,nofollow">
   <meta name="description" content="Obras originales, paisajes y retratos realistas pintados a mano en Mendoza, Argentina.">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <title>Nombre de la artista | Pintura realista y retratos</title>
+  <title>Carina Donaire | Pintura realista y retratos</title>
 ${cssLinks}
 </head>
 <body>

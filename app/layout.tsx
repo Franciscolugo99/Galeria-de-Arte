@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Nombre de la artista | Pintura realista y retratos",
+  title: "Carina Donaire | Pintura realista y retratos",
   description:
     "Obras originales, paisajes y retratos realistas pintados a mano en Mendoza, Argentina.",
   other: {

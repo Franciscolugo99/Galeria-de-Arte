@@ -19,7 +19,8 @@ VALUES
   ((SELECT id FROM categories WHERE slug = 'figurativas'), 'Composición Alemania–Argentina', 'composicion-alemania-argentina', 'Título descriptivo provisorio.', NULL, NULL, NULL, 'consult', 'published', 'public', 0, 70, NOW()),
   ((SELECT id FROM categories WHERE slug = 'naturaleza'), 'Ventana turquesa', 'ventana-turquesa', 'Título descriptivo provisorio.', NULL, NULL, NULL, 'consult', 'published', 'public', 0, 80, NOW()),
   ((SELECT id FROM categories WHERE slug = 'naturaleza'), 'Ramo en tierras', 'ramo-en-tierras', 'Título descriptivo provisorio.', NULL, NULL, NULL, 'consult', 'published', 'public', 0, 90, NOW()),
-  ((SELECT id FROM categories WHERE slug = 'figurativas'), 'Caballos en libertad', 'caballos-en-libertad', 'Título descriptivo provisorio.', NULL, NULL, NULL, 'consult', 'published', 'public', 0, 100, NOW())
+  ((SELECT id FROM categories WHERE slug = 'figurativas'), 'Caballos en libertad', 'caballos-en-libertad', 'Título descriptivo provisorio.', NULL, NULL, NULL, 'consult', 'published', 'public', 0, 100, NOW()),
+  ((SELECT id FROM categories WHERE slug = 'naturaleza'), 'Paisaje marino', 'paisaje-marino', 'Título descriptivo provisorio.', NULL, NULL, NULL, 'consult', 'published', 'public', 0, 110, NOW())
 ON DUPLICATE KEY UPDATE
   category_id = VALUES(category_id), description = VALUES(description), technique = VALUES(technique),
   width_cm = VALUES(width_cm), height_cm = VALUES(height_cm), availability_status = VALUES(availability_status),
@@ -36,7 +37,8 @@ INSERT INTO work_images (work_id, image_path, thumbnail_path, alt_text, is_cover
   ((SELECT id FROM works WHERE slug = 'composicion-alemania-argentina'), '/art/obras-reales/nuevas/composicion-alemania-argentina.webp', '/art/obras-reales/nuevas/composicion-alemania-argentina.webp', 'Composición pictórica con paisajes, arquitectura, banderas de Alemania y Argentina, una guitarra y una jarra', 1, 10),
   ((SELECT id FROM works WHERE slug = 'ventana-turquesa'), '/art/obras-reales/nuevas/ventana-turquesa.webp', '/art/obras-reales/nuevas/ventana-turquesa.webp', 'Pintura de una ventana turquesa rodeada por macetas y flores de distintos colores', 1, 10),
   ((SELECT id FROM works WHERE slug = 'ramo-en-tierras'), '/art/obras-reales/nuevas/ramo-en-tierras.webp', '/art/obras-reales/nuevas/ramo-en-tierras.webp', 'Pintura de un ramo de flores blancas, ocres y amarillas sobre un fondo en tonos tierra', 1, 10),
-  ((SELECT id FROM works WHERE slug = 'caballos-en-libertad'), '/art/obras-reales/nuevas/caballos-en-libertad.webp', '/art/obras-reales/nuevas/caballos-en-libertad.webp', 'Pintura de una manada de caballos corriendo sobre un paisaje en tonos amarillos y turquesa', 1, 10)
+  ((SELECT id FROM works WHERE slug = 'caballos-en-libertad'), '/art/obras-reales/nuevas/caballos-en-libertad.webp', '/art/obras-reales/nuevas/caballos-en-libertad.webp', 'Pintura de una manada de caballos corriendo sobre un paisaje en tonos amarillos y turquesa', 1, 10),
+  ((SELECT id FROM works WHERE slug = 'paisaje-marino'), '/art/obras-reales/nuevas/paisaje-marino.webp', '/art/obras-reales/nuevas/paisaje-marino.webp', 'Pintura de un paisaje marino con olas, cielo amplio y costa en tonos azules', 1, 10)
 ON DUPLICATE KEY UPDATE thumbnail_path = VALUES(thumbnail_path), alt_text = VALUES(alt_text), is_cover = VALUES(is_cover);
 
 INSERT INTO settings (setting_key, setting_value) VALUES

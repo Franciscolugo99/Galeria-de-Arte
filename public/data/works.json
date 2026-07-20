@@ -99,6 +99,16 @@
       "medium": "",
       "size": "",
       "status": "Consultar"
+    },
+    {
+      "id": 11,
+      "title": "Paisaje marino",
+      "category": "Naturaleza",
+      "image": "/art/obras-reales/nuevas/paisaje-marino.webp",
+      "altText": "Pintura de un paisaje marino con olas, cielo amplio y costa en tonos azules",
+      "medium": "",
+      "size": "",
+      "status": "Consultar"
     }
   ]
 }

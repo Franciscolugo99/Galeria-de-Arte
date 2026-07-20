@@ -645,7 +645,7 @@ export default function Home() {
       <section className="commissions" id="encargos">
         <div className="commission-image scroll-reveal">
           <img
-            src="/art/obras-reales/contexto/corcho-en-pared.webp"
+            src="/art/obras-reales/contexto/corcho-humeante-obra.webp"
             alt="Pintura de un corcho humeante sobre barriles"
             decoding="async"
             loading="lazy"

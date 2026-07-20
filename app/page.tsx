@@ -429,8 +429,8 @@ export default function Home() {
         <div className="hero-gallery reveal">
           <div className="hero-landscape">
             <img
-              src="/art/obras-reales/contexto/artista-con-follaje-y-ave.webp"
-              alt="Carina Donaire junto a una pintura de follaje tropical y un ave"
+              src="/art/obras-reales/contexto/carina-pintando-alas.webp"
+              alt="Carina Donaire pintando alas coloridas sobre madera"
               decoding="async"
               fetchPriority="high"
             />
@@ -444,7 +444,7 @@ export default function Home() {
             />
             <span>Obra original</span>
           </div>
-          <p className="hero-note">Carina junto a una de sus obras</p>
+          <p className="hero-note">Carina en proceso de obra</p>
         </div>
       </section>
 

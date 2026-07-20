@@ -26,16 +26,20 @@ $labels = [
 $works = array_map(static function (array $work) use ($labels): array {
     $width = $work['width_cm'] !== null ? rtrim(rtrim((string) $work['width_cm'], '0'), '.') : null;
     $height = $work['height_cm'] !== null ? rtrim(rtrim((string) $work['height_cm'], '0'), '.') : null;
+    $description = trim((string) ($work['description'] ?? ''));
+    if ($description === 'Título descriptivo provisorio.') {
+        $description = '';
+    }
     return [
         'id' => (int) $work['id'],
         'title' => $work['title'],
         'slug' => $work['slug'],
-        'description' => $work['description'] ?? '',
+        'description' => $description,
         'category' => $work['category'] ?? 'Sin categoría',
         'image' => $work['image'],
         'altText' => $work['alt_text'],
-        'medium' => $work['technique'] ?? 'Técnica a definir',
-        'size' => $width && $height ? sprintf('%s x %s cm', $width, $height) : 'Medidas a definir',
+        'medium' => trim((string) ($work['technique'] ?? '')),
+        'size' => $width && $height ? sprintf('%s x %s cm', $width, $height) : '',
         'year' => $work['year'] ? (int) $work['year'] : null,
         'status' => $labels[$work['availability_status']] ?? 'Consultar',
     ];
@@ -43,4 +47,3 @@ $works = array_map(static function (array $work) use ($labels): array {
 
 header('Cache-Control: public, max-age=60, stale-while-revalidate=300');
 json_response(['works' => $works]);
-

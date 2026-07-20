@@ -22,8 +22,9 @@ interface Work {
   category: string;
   image: string;
   altText?: string;
-  medium: string;
-  size: string;
+  description?: string;
+  medium?: string;
+  size?: string;
   status: string;
 }
 
@@ -69,6 +70,22 @@ function getRevealStyle(index: number): RevealStyle {
     "--art-drift-x": drift[0],
     "--art-drift-y": drift[1],
   };
+}
+
+const placeholderTexts = new Set([
+  "A definir",
+  "Técnica a definir",
+  "Medidas a definir",
+  "Título descriptivo provisorio.",
+]);
+
+function cleanWorkText(value?: string | null) {
+  const text = (value ?? "").trim();
+  return text && !placeholderTexts.has(text) ? text : "";
+}
+
+function getWorkSpecs(work: Work) {
+  return [cleanWorkText(work.medium), cleanWorkText(work.size)].filter(Boolean);
 }
 
 export default function Home() {
@@ -353,6 +370,11 @@ export default function Home() {
     }
   }
 
+  const selectedWorkSpecs = selectedWork ? getWorkSpecs(selectedWork) : [];
+  const selectedDescription = selectedWork
+    ? cleanWorkText(selectedWork.description)
+    : "";
+
   return (
     <main>
       <header className="site-header">
@@ -491,40 +513,46 @@ export default function Home() {
               {catalogMessage}
             </p>
           )}
-          {visibleWorks.map((work, index) => (
-            <article
-              className={`work-card work-${index + 1} scroll-reveal`}
-              key={work.id}
-              style={getRevealStyle(index)}
-            >
-              <button
-                className="work-open"
-                type="button"
-                aria-label={`Ampliar obra: ${work.title}`}
-                onClick={() => setSelectedWork(work)}
+          {visibleWorks.map((work, index) => {
+            const specs = getWorkSpecs(work);
+            return (
+              <article
+                className={`work-card work-${index + 1} scroll-reveal`}
+                key={work.id}
+                style={getRevealStyle(index)}
               >
-                <div className="work-image">
-                  <img
-                    src={work.image}
-                    alt={work.altText || `${work.title}, ${work.medium}`}
-                    decoding="async"
-                    loading={index < 2 ? "eager" : "lazy"}
-                  />
-                  <span>{work.status}</span>
-                </div>
-                <div className="work-caption">
-                  <div>
-                    <p>{work.category}</p>
-                    <h3>{work.title}</h3>
+                <button
+                  className="work-open"
+                  type="button"
+                  aria-label={`Ampliar obra: ${work.title}`}
+                  onClick={() => setSelectedWork(work)}
+                >
+                  <div className="work-image">
+                    <img
+                      src={work.image}
+                      alt={work.altText || work.title}
+                      decoding="async"
+                      loading={index < 2 ? "eager" : "lazy"}
+                    />
+                    <span>{work.status}</span>
                   </div>
-                  <p className="work-specs">
-                    <span>{work.medium}</span>
-                    <span>{work.size}</span>
-                  </p>
-                </div>
-              </button>
-            </article>
-          ))}
+                  <div className="work-caption">
+                    <div>
+                      <p>{work.category}</p>
+                      <h3>{work.title}</h3>
+                    </div>
+                    {specs.length > 0 && (
+                      <p className="work-specs">
+                        {specs.map((spec) => (
+                          <span key={spec}>{spec}</span>
+                        ))}
+                      </p>
+                    )}
+                  </div>
+                </button>
+              </article>
+            );
+          })}
         </div>
       </section>
 
@@ -561,9 +589,14 @@ export default function Home() {
             <div className="lightbox-details">
               <p>{selectedWork.category}</p>
               <h2 id="lightbox-title">{selectedWork.title}</h2>
-              <p className="lightbox-specs">
-                {selectedWork.medium} · {selectedWork.size}
-              </p>
+              {selectedWorkSpecs.length > 0 && (
+                <p className="lightbox-specs">
+                  {selectedWorkSpecs.join(" / ")}
+                </p>
+              )}
+              {selectedDescription && (
+                <p className="lightbox-description">{selectedDescription}</p>
+              )}
               <p className="lightbox-counter" aria-live="polite">
                 {visibleWorks.findIndex((work) => work.id === selectedWork.id) +
                   1}{" "}
@@ -612,8 +645,8 @@ export default function Home() {
       <section className="commissions" id="encargos">
         <div className="commission-image scroll-reveal">
           <img
-            src="/art/retrato-hombre.webp"
-            alt="Retrato realista pintado al óleo"
+            src="/art/obras-reales/contexto/corcho-en-pared.webp"
+            alt="Pintura de un corcho humeante sobre barriles"
             decoding="async"
             loading="lazy"
           />

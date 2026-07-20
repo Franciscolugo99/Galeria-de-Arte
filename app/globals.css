@@ -814,6 +814,14 @@ p {
   font-size: 12px;
 }
 
+.lightbox-description {
+  max-width: 52ch;
+  margin: 4px 0 0;
+  color: color-mix(in oklch, var(--footer-text) 86%, var(--button-ink));
+  font-size: 13px;
+  line-height: 1.65;
+}
+
 .lightbox-counter {
   margin-top: 24px;
 }

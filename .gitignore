@@ -52,6 +52,8 @@ next-env.d.ts
 /.wrangler/
 /.sites-runtime/
 /outputs/
+/output/
+/.playwright-cli/
 /work/
 /api/config.local.php
 /storage/originals/

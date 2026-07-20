@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS works (
   width_cm DECIMAL(7,2) NULL,
   height_cm DECIMAL(7,2) NULL,
   year SMALLINT UNSIGNED NULL,
-  availability_status VARCHAR(30) NOT NULL DEFAULT 'available',
+  availability_status VARCHAR(30) NOT NULL DEFAULT 'consult',
   publication_status VARCHAR(20) NOT NULL DEFAULT 'draft',
   visibility VARCHAR(20) NOT NULL DEFAULT 'public',
   is_featured TINYINT(1) NOT NULL DEFAULT 0,

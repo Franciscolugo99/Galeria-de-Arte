@@ -246,6 +246,7 @@ $boot = [
               <label>
                 Disponibilidad
                 <select name="availabilityStatus">
+                  <option value="consult">Consultar</option>
                   <option value="available">Disponible</option>
                   <option value="sold">Vendida</option>
                   <option value="commission">Por encargo</option>

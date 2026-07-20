@@ -378,14 +378,15 @@ export default function Home() {
 
       <section className="hero" id="inicio">
         <div className="hero-copy reveal reveal-delay">
-          <p className="eyebrow">Pintura realista · Obra hecha a mano</p>
+          <p className="eyebrow">Carina Donaire · Artista visual</p>
           <h1>
             Arte que conserva una <em>historia</em>
           </h1>
           <span className="brush-stroke" aria-hidden="true" />
           <p className="hero-intro">
-            Retratos, paisajes y obras originales creadas para detener el
-            tiempo y transformar recuerdos en piezas únicas.
+            Obras originales creadas a mano: composiciones figurativas,
+            naturaleza y búsquedas abstractas donde cada pincelada conserva
+            una historia.
           </p>
           <div className="hero-actions">
             <a className="button button-primary" href="#obras">
@@ -400,22 +401,22 @@ export default function Home() {
         <div className="hero-gallery reveal">
           <div className="hero-landscape">
             <img
-              src="/art/hero-paisaje.webp"
-              alt="Pintura realista de un paisaje de montaña y viñedos"
+              src="/art/obras-reales/contexto/artista-con-follaje-y-ave.webp"
+              alt="Carina Donaire junto a una pintura de follaje tropical y un ave"
               decoding="async"
               fetchPriority="high"
             />
           </div>
           <div className="hero-portrait">
             <img
-              src="/art/retrato-mujer.webp"
-              alt="Retrato al óleo de una mujer de perfil"
+              src="/art/obras-reales/uvas-borgona-vertical.webp"
+              alt="Pintura vertical de uvas en tonos borgoña y violeta"
               decoding="async"
               loading="eager"
             />
-            <span>Retrato original</span>
+            <span>Obra original</span>
           </div>
-          <p className="hero-note">Cada pincelada, una memoria</p>
+          <p className="hero-note">Carina junto a una de sus obras</p>
         </div>
       </section>
 

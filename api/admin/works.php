@@ -118,8 +118,8 @@ $description = trim((string) ($input['description'] ?? '')) ?: null;
 $width = ($input['widthCm'] ?? '') !== '' ? (float) $input['widthCm'] : null;
 $height = ($input['heightCm'] ?? '') !== '' ? (float) $input['heightCm'] : null;
 $year = ($input['year'] ?? '') !== '' ? (int) $input['year'] : null;
-$availability = in_array($input['availabilityStatus'] ?? '', ['available', 'sold', 'commission'], true)
-    ? $input['availabilityStatus'] : 'available';
+$availability = in_array($input['availabilityStatus'] ?? '', ['consult', 'available', 'sold', 'commission'], true)
+    ? $input['availabilityStatus'] : 'consult';
 $publication = in_array($input['publicationStatus'] ?? '', ['draft', 'published'], true)
     ? $input['publicationStatus'] : 'draft';
 $visibility = in_array($input['visibility'] ?? '', ['public', 'private'], true)

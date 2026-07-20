@@ -1,37 +1,39 @@
 SET NAMES utf8mb4;
 
 INSERT INTO categories (name, slug, sort_order) VALUES
-  ('Paisajes', 'paisajes', 10),
-  ('Retratos', 'retratos', 20),
-  ('Naturaleza', 'naturaleza', 30)
+  ('Naturaleza', 'naturaleza', 10),
+  ('Bodegones', 'bodegones', 20),
+  ('Abstractas', 'abstractas', 30),
+  ('Figurativas', 'figurativas', 40)
 ON DUPLICATE KEY UPDATE name = VALUES(name), sort_order = VALUES(sort_order);
 
 INSERT INTO works
-  (category_id, title, slug, technique, width_cm, height_cm, availability_status, publication_status, visibility, is_featured, featured_order, published_at)
+  (category_id, title, slug, description, technique, width_cm, height_cm, availability_status, publication_status, visibility, is_featured, featured_order, published_at)
 VALUES
-  ((SELECT id FROM categories WHERE slug = 'paisajes'), 'Tarde en la cordillera', 'tarde-en-la-cordillera', 'Óleo sobre lienzo', 90, 120, 'available', 'published', 'public', 1, 10, NOW()),
-  ((SELECT id FROM categories WHERE slug = 'retratos'), 'Luz serena', 'luz-serena', 'Óleo sobre lienzo', 60, 50, 'sold', 'published', 'public', 1, 20, NOW()),
-  ((SELECT id FROM categories WHERE slug = 'naturaleza'), 'Silencio de otoño', 'silencio-de-otono', 'Óleo sobre tabla', 50, 40, 'available', 'published', 'public', 1, 30, NOW()),
-  ((SELECT id FROM categories WHERE slug = 'retratos'), 'Raíces', 'raices', 'Óleo sobre lienzo', 70, 55, 'commission', 'published', 'public', 0, 40, NOW()),
-  ((SELECT id FROM categories WHERE slug = 'paisajes'), 'Camino al viñedo', 'camino-al-vinedo', 'Óleo sobre lienzo', 65, 90, 'available', 'published', 'public', 0, 50, NOW()),
-  ((SELECT id FROM categories WHERE slug = 'naturaleza'), 'Memoria de flores', 'memoria-de-flores', 'Técnica mixta', 55, 45, 'available', 'published', 'public', 0, 60, NOW())
+  ((SELECT id FROM categories WHERE slug = 'naturaleza'), 'Follaje y ave', 'follaje-y-ave', 'Título descriptivo provisorio.', NULL, NULL, NULL, 'consult', 'published', 'public', 1, 10, NOW()),
+  ((SELECT id FROM categories WHERE slug = 'bodegones'), 'Uvas borgoña', 'uvas-borgona', 'Título descriptivo provisorio.', NULL, NULL, NULL, 'consult', 'published', 'public', 1, 20, NOW()),
+  ((SELECT id FROM categories WHERE slug = 'abstractas'), 'Azul y tierra', 'azul-y-tierra', 'Título descriptivo provisorio.', NULL, NULL, NULL, 'consult', 'published', 'public', 1, 30, NOW()),
+  ((SELECT id FROM categories WHERE slug = 'abstractas'), 'Trazos claros', 'trazos-claros', 'Título descriptivo provisorio.', NULL, NULL, NULL, 'consult', 'published', 'public', 0, 40, NOW()),
+  ((SELECT id FROM categories WHERE slug = 'bodegones'), 'Uvas sobre azul', 'uvas-sobre-azul', 'Título descriptivo provisorio.', NULL, NULL, NULL, 'consult', 'published', 'public', 0, 50, NOW()),
+  ((SELECT id FROM categories WHERE slug = 'figurativas'), 'Mujeres y calas', 'mujeres-y-calas', 'Título descriptivo provisorio.', NULL, NULL, NULL, 'consult', 'published', 'public', 0, 60, NOW())
 ON DUPLICATE KEY UPDATE
-  category_id = VALUES(category_id), technique = VALUES(technique), width_cm = VALUES(width_cm),
-  height_cm = VALUES(height_cm), availability_status = VALUES(availability_status),
-  publication_status = VALUES(publication_status), visibility = VALUES(visibility);
+  category_id = VALUES(category_id), description = VALUES(description), technique = VALUES(technique),
+  width_cm = VALUES(width_cm), height_cm = VALUES(height_cm), availability_status = VALUES(availability_status),
+  publication_status = VALUES(publication_status), visibility = VALUES(visibility),
+  is_featured = VALUES(is_featured), featured_order = VALUES(featured_order);
 
 INSERT INTO work_images (work_id, image_path, thumbnail_path, alt_text, is_cover, sort_order) VALUES
-  ((SELECT id FROM works WHERE slug = 'tarde-en-la-cordillera'), '/art/hero-paisaje.webp', '/art/hero-paisaje.webp', 'Pintura realista de un paisaje de montaña y viñedos', 1, 10),
-  ((SELECT id FROM works WHERE slug = 'luz-serena'), '/art/retrato-mujer.webp', '/art/retrato-mujer.webp', 'Retrato al óleo de una mujer de perfil', 1, 10),
-  ((SELECT id FROM works WHERE slug = 'silencio-de-otono'), '/art/bodegon.webp', '/art/bodegon.webp', 'Bodegón realista de tonos cálidos', 1, 10),
-  ((SELECT id FROM works WHERE slug = 'raices'), '/art/retrato-hombre.webp', '/art/retrato-hombre.webp', 'Retrato realista de un hombre', 1, 10),
-  ((SELECT id FROM works WHERE slug = 'camino-al-vinedo'), '/art/paisaje-camino.webp', '/art/paisaje-camino.webp', 'Paisaje pintado de un camino entre viñedos', 1, 10),
-  ((SELECT id FROM works WHERE slug = 'memoria-de-flores'), '/art/flores.webp', '/art/flores.webp', 'Pintura realista de flores en una composición serena', 1, 10)
-ON DUPLICATE KEY UPDATE image_path = VALUES(image_path);
+  ((SELECT id FROM works WHERE slug = 'follaje-y-ave'), '/art/obras-reales/follaje-y-ave.webp', '/art/obras-reales/follaje-y-ave.webp', 'Pintura de grandes hojas tropicales en tonos verdes y azules con un ave amarilla en vuelo', 1, 10),
+  ((SELECT id FROM works WHERE slug = 'uvas-borgona'), '/art/obras-reales/uvas-borgona-vertical.webp', '/art/obras-reales/uvas-borgona-vertical.webp', 'Pintura vertical de un racimo de uvas brillantes en tonos borgoña, rojo y violeta', 1, 10),
+  ((SELECT id FROM works WHERE slug = 'azul-y-tierra'), '/art/obras-reales/abstracta-azul-y-tierra.webp', '/art/obras-reales/abstracta-azul-y-tierra.webp', 'Pintura abstracta vertical con texturas en azul, tierra, negro y pequeños acentos rojos', 1, 10),
+  ((SELECT id FROM works WHERE slug = 'trazos-claros'), '/art/obras-reales/abstracta-clara.webp', '/art/obras-reales/abstracta-clara.webp', 'Pintura abstracta vertical en beige, blanco, amarillo y verde azulado atravesada por líneas curvas', 1, 10),
+  ((SELECT id FROM works WHERE slug = 'uvas-sobre-azul'), '/art/obras-reales/catalogo/uvas-realistas-v2.webp', '/art/obras-reales/catalogo/uvas-realistas-v2.webp', 'Pintura realista horizontal de un racimo de uvas moradas sobre un fondo azul grisáceo', 1, 10),
+  ((SELECT id FROM works WHERE slug = 'mujeres-y-calas'), '/art/obras-reales/catalogo/mujeres-y-calas.webp', '/art/obras-reales/catalogo/mujeres-y-calas.webp', 'Pintura figurativa de tres mujeres entre calas, vasijas y formas de colores cálidos', 1, 10)
+ON DUPLICATE KEY UPDATE thumbnail_path = VALUES(thumbnail_path), alt_text = VALUES(alt_text), is_cover = VALUES(is_cover);
 
 INSERT INTO settings (setting_key, setting_value) VALUES
   ('artist_name', 'Carina Donaire'),
-  ('artist_bio', 'Texto de presentación a definir con la artista.'),
+  ('artist_bio', 'Carina Donaire comparte en este espacio una selección de sus obras originales. La información sobre su recorrido y proceso artístico se completará próximamente.'),
   ('artist_location', 'Mendoza, Argentina'),
   ('artist_photo', ''),
   ('contact_email', ''),

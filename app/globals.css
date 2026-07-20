@@ -296,6 +296,14 @@ p {
   transition: transform 720ms var(--ease-reveal), filter 220ms var(--ease-control);
 }
 
+.hero-landscape img {
+  object-position: 82% center;
+}
+
+.hero-portrait img {
+  object-position: center;
+}
+
 .hero-landscape:hover img,
 .hero-portrait:hover img,
 .commission-image:hover img {
@@ -304,8 +312,9 @@ p {
 
 .hero-portrait {
   position: absolute;
-  right: clamp(20px, 5vw, 82px);
+  right: auto;
   bottom: 22px;
+  left: clamp(20px, 5vw, 82px);
   width: min(38%, 330px);
   padding: 12px 12px 34px;
   background: var(--portrait-mat);
@@ -329,8 +338,9 @@ p {
 
 .hero-note {
   position: absolute;
+  right: 24px;
   bottom: 36px;
-  left: 24px;
+  left: auto;
   padding: 11px 16px;
   background: rgba(244, 239, 230, 0.88);
   font-family: Georgia, serif;
@@ -1312,13 +1322,15 @@ footer p {
   }
 
   .hero-portrait {
-    right: 18px;
+    right: auto;
+    left: 18px;
     width: 42%;
   }
 
   .hero-note {
-    left: 25px;
+    right: 25px;
     bottom: 46px;
+    left: auto;
   }
 
   .category-ribbon {

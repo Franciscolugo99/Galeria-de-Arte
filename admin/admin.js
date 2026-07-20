@@ -116,7 +116,7 @@
     return hasImages || Boolean(
       values.title || values.categoryId || values.year || values.technique ||
       values.widthCm || values.heightCm || values.description || values.isFeatured ||
-      values.publicationStatus === "published" || values.availabilityStatus !== "available" ||
+      values.publicationStatus === "published" || values.availabilityStatus !== "consult" ||
       values.visibility !== "public" || Number(values.featuredOrder) !== 0
     );
   }
@@ -635,7 +635,7 @@
     resetUploadStatus();
     formValue("id", id || "");
     formValue("publicationStatus", "draft");
-    formValue("availabilityStatus", "available");
+    formValue("availabilityStatus", "consult");
     formValue("visibility", "public");
     formValue("featuredOrder", 0);
     byId("editorEyebrow").textContent = id ? "Editar obra" : "Nueva obra";

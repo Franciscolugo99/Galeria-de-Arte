@@ -2,64 +2,63 @@
   "works": [
     {
       "id": 1,
-      "title": "Tarde en la cordillera",
-      "category": "Paisajes",
-      "image": "/art/hero-paisaje.webp",
-      "altText": "Pintura realista de un paisaje de montaña y viñedos",
-      "medium": "Óleo sobre lienzo",
-      "size": "90 x 120 cm",
-      "status": "Disponible"
+      "title": "Follaje y ave",
+      "category": "Naturaleza",
+      "image": "/art/obras-reales/follaje-y-ave.webp",
+      "altText": "Pintura de grandes hojas tropicales en tonos verdes y azules con un ave amarilla en vuelo",
+      "medium": "Técnica a definir",
+      "size": "Medidas a definir",
+      "status": "Consultar"
     },
     {
       "id": 2,
-      "title": "Luz serena",
-      "category": "Retratos",
-      "image": "/art/retrato-mujer.webp",
-      "altText": "Retrato al óleo de una mujer de perfil",
-      "medium": "Óleo sobre lienzo",
-      "size": "60 x 50 cm",
-      "status": "Vendida"
+      "title": "Uvas borgoña",
+      "category": "Bodegones",
+      "image": "/art/obras-reales/uvas-borgona-vertical.webp",
+      "altText": "Pintura vertical de un racimo de uvas brillantes en tonos borgoña, rojo y violeta",
+      "medium": "Técnica a definir",
+      "size": "Medidas a definir",
+      "status": "Consultar"
     },
     {
       "id": 3,
-      "title": "Silencio de otoño",
-      "category": "Naturaleza",
-      "image": "/art/bodegon.webp",
-      "altText": "Bodegón realista de tonos cálidos",
-      "medium": "Óleo sobre tabla",
-      "size": "50 x 40 cm",
-      "status": "Disponible"
+      "title": "Azul y tierra",
+      "category": "Abstractas",
+      "image": "/art/obras-reales/abstracta-azul-y-tierra.webp",
+      "altText": "Pintura abstracta vertical con texturas en azul, tierra, negro y pequeños acentos rojos",
+      "medium": "Técnica a definir",
+      "size": "Medidas a definir",
+      "status": "Consultar"
     },
     {
       "id": 4,
-      "title": "Raíces",
-      "category": "Retratos",
-      "image": "/art/retrato-hombre.webp",
-      "altText": "Retrato realista de un hombre",
-      "medium": "Óleo sobre lienzo",
-      "size": "70 x 55 cm",
-      "status": "Obra por encargo"
+      "title": "Trazos claros",
+      "category": "Abstractas",
+      "image": "/art/obras-reales/abstracta-clara.webp",
+      "altText": "Pintura abstracta vertical en beige, blanco, amarillo y verde azulado atravesada por líneas curvas",
+      "medium": "Técnica a definir",
+      "size": "Medidas a definir",
+      "status": "Consultar"
     },
     {
       "id": 5,
-      "title": "Camino al viñedo",
-      "category": "Paisajes",
-      "image": "/art/paisaje-camino.webp",
-      "altText": "Paisaje pintado de un camino entre viñedos",
-      "medium": "Óleo sobre lienzo",
-      "size": "65 x 90 cm",
-      "status": "Disponible"
+      "title": "Uvas sobre azul",
+      "category": "Bodegones",
+      "image": "/art/obras-reales/catalogo/uvas-realistas-v2.webp",
+      "altText": "Pintura realista horizontal de un racimo de uvas moradas sobre un fondo azul grisáceo",
+      "medium": "Técnica a definir",
+      "size": "Medidas a definir",
+      "status": "Consultar"
     },
     {
       "id": 6,
-      "title": "Memoria de flores",
-      "category": "Naturaleza",
-      "image": "/art/flores.webp",
-      "altText": "Pintura realista de flores en una composición serena",
-      "medium": "Técnica mixta",
-      "size": "55 x 45 cm",
-      "status": "Disponible"
+      "title": "Mujeres y calas",
+      "category": "Figurativas",
+      "image": "/art/obras-reales/catalogo/mujeres-y-calas.webp",
+      "altText": "Pintura figurativa de tres mujeres entre calas, vasijas y formas de colores cálidos",
+      "medium": "Técnica a definir",
+      "size": "Medidas a definir",
+      "status": "Consultar"
     }
   ]
 }
-

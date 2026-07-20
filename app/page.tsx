@@ -760,11 +760,17 @@ export default function Home() {
             />
           </label>
           <button
-            className="button button-primary"
+            className={`button button-primary contact-submit is-${contactStatus}`}
             disabled={contactStatus === "sending"}
             type="submit"
           >
-            {contactStatus === "sending" ? "Enviando..." : "Enviar consulta"}
+            <span className="brush-pass" aria-hidden="true">
+              <span />
+            </span>
+            <span className="paint-line" aria-hidden="true" />
+            <span className="submit-label">
+              {contactStatus === "sending" ? "Enviando..." : "Enviar consulta"}
+            </span>
           </button>
           {contactMessage && (
             <p

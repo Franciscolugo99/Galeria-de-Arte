@@ -1419,25 +1419,42 @@ footer p {
     position: fixed;
     top: 0;
     right: 0;
+    left: 0;
+    z-index: 21;
     display: flex;
-    width: min(86vw, 390px);
-    height: 100vh;
+    width: 100vw;
+    height: 100dvh;
+    min-height: 100vh;
     align-items: flex-start;
     justify-content: center;
     flex-direction: column;
-    gap: 28px;
-    padding: 90px 45px;
-    background: var(--warm-panel);
-    box-shadow: -20px 0 50px rgba(40, 30, 20, 0.15);
-    font-family: Georgia, serif;
-    font-size: 29px;
+    gap: clamp(20px, 5vh, 32px);
+    padding:
+      max(106px, calc(env(safe-area-inset-top) + 92px))
+      clamp(30px, 14vw, 70px)
+      48px;
+    background:
+      linear-gradient(90deg, color-mix(in oklch, var(--ivory) 80%, transparent), transparent 42%),
+      var(--warm-panel);
+    font-family: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+    font-size: clamp(36px, 10vw, 48px);
+    line-height: 1;
+    opacity: 0;
     pointer-events: none;
-    transform: translateX(105%);
-    transition: transform 260ms var(--ease-control), visibility 0s linear 260ms;
+    transform: translateX(100%);
+    transition:
+      opacity 220ms var(--ease-control),
+      transform 320ms var(--ease-reveal),
+      visibility 0s linear 320ms;
     visibility: hidden;
   }
 
+  .main-nav a {
+    min-height: 52px;
+  }
+
   .main-nav.is-open {
+    opacity: 1;
     pointer-events: auto;
     transform: translateX(0);
     transition-delay: 0s;

@@ -59,6 +59,46 @@
       "medium": "Técnica a definir",
       "size": "Medidas a definir",
       "status": "Consultar"
+    },
+    {
+      "id": 7,
+      "title": "Composición Alemania–Argentina",
+      "category": "Figurativas",
+      "image": "/art/obras-reales/nuevas/composicion-alemania-argentina.webp",
+      "altText": "Composición pictórica con paisajes, arquitectura, banderas de Alemania y Argentina, una guitarra y una jarra",
+      "medium": "Técnica a definir",
+      "size": "Medidas a definir",
+      "status": "Consultar"
+    },
+    {
+      "id": 8,
+      "title": "Ventana turquesa",
+      "category": "Naturaleza",
+      "image": "/art/obras-reales/nuevas/ventana-turquesa.webp",
+      "altText": "Pintura de una ventana turquesa rodeada por macetas y flores de distintos colores",
+      "medium": "Técnica a definir",
+      "size": "Medidas a definir",
+      "status": "Consultar"
+    },
+    {
+      "id": 9,
+      "title": "Ramo en tierras",
+      "category": "Naturaleza",
+      "image": "/art/obras-reales/nuevas/ramo-en-tierras.webp",
+      "altText": "Pintura de un ramo de flores blancas, ocres y amarillas sobre un fondo en tonos tierra",
+      "medium": "Técnica a definir",
+      "size": "Medidas a definir",
+      "status": "Consultar"
+    },
+    {
+      "id": 10,
+      "title": "Caballos en libertad",
+      "category": "Figurativas",
+      "image": "/art/obras-reales/nuevas/caballos-en-libertad.webp",
+      "altText": "Pintura de una manada de caballos corriendo sobre un paisaje en tonos amarillos y turquesa",
+      "medium": "Técnica a definir",
+      "size": "Medidas a definir",
+      "status": "Consultar"
     }
   ]
 }

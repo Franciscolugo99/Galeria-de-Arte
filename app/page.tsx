@@ -174,6 +174,9 @@ export default function Home() {
       return;
     }
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     function closeOnEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setMenuOpen(false);
@@ -182,7 +185,10 @@ export default function Home() {
 
     window.addEventListener("keydown", closeOnEscape);
 
-    return () => window.removeEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
   }, [menuOpen]);
 
   useEffect(() => {

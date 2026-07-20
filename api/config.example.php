@@ -15,4 +15,12 @@ return [
     'max_upload_bytes' => 15 * 1024 * 1024,
     // Capacidad contratada. El plan de 10 GB equivale a 10.000.000.000 bytes.
     'storage_capacity_bytes' => 10_000_000_000,
+    'smtp_host' => '',
+    'smtp_port' => 465,
+    'smtp_username' => '',
+    'smtp_password' => '',
+    'smtp_secure' => 'ssl',
+    'smtp_from' => '',
+    'smtp_from_name' => 'Carina Donaire',
+    'contact_recipient' => '',
 ];

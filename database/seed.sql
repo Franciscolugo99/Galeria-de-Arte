@@ -35,6 +35,7 @@ INSERT INTO settings (setting_key, setting_value) VALUES
   ('artist_location', 'Mendoza, Argentina'),
   ('artist_photo', ''),
   ('contact_email', ''),
+  ('notification_email', ''),
   ('recovery_email', ''),
   ('instagram_url', ''),
   ('facebook_url', ''),

@@ -13,7 +13,7 @@ if ($method !== 'PUT') {
 
 verify_csrf();
 $input = json_input();
-$allowed = ['artist_name', 'artist_bio', 'artist_location', 'contact_email', 'recovery_email', 'instagram_url', 'facebook_url', 'whatsapp_url'];
+$allowed = ['artist_name', 'artist_bio', 'artist_location', 'contact_email', 'notification_email', 'recovery_email', 'instagram_url', 'facebook_url', 'whatsapp_url'];
 $values = [];
 foreach ($allowed as $key) {
     $values[$key] = trim((string) ($input[$key] ?? ''));
@@ -25,7 +25,7 @@ if (mb_strlen($values['artist_name']) < 2 || mb_strlen($values['artist_name']) >
 if (mb_strlen($values['artist_bio']) > 3000) {
     json_response(['error' => 'La presentación es demasiado extensa.'], 422);
 }
-foreach (['contact_email', 'recovery_email'] as $emailKey) {
+foreach (['contact_email', 'notification_email', 'recovery_email'] as $emailKey) {
     if ($values[$emailKey] !== '' && !filter_var($values[$emailKey], FILTER_VALIDATE_EMAIL)) {
         json_response(['error' => 'Revisá los correos ingresados.'], 422);
     }

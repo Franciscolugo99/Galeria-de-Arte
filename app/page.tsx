@@ -74,7 +74,10 @@ function getRevealStyle(index: number): RevealStyle {
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [category, setCategory] = useState<Category>("Todas");
-  const [sent, setSent] = useState(false);
+  const [contactStatus, setContactStatus] = useState<
+    "idle" | "sending" | "sent" | "error"
+  >("idle");
+  const [contactMessage, setContactMessage] = useState("");
   const [works, setWorks] = useState<Work[]>([]);
   const [catalogMessage, setCatalogMessage] = useState("Cargando obras…");
   const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
@@ -306,10 +309,42 @@ export default function Home() {
     setCategory(nextCategory);
   }
 
-  function submitContact(event: FormEvent<HTMLFormElement>) {
+  async function submitContact(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSent(true);
-    event.currentTarget.reset();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    setContactStatus("sending");
+    setContactMessage("Enviando consulta...");
+    try {
+      const response = await fetch("/api/contact.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(Object.fromEntries(data.entries())),
+      });
+      const payload = (await response.json().catch(() => ({}))) as {
+        message?: string;
+        error?: string;
+      };
+      if (!response.ok) {
+        throw new Error(payload.error || "No pudimos enviar la consulta.");
+      }
+      setContactStatus("sent");
+      setContactMessage(
+        payload.message ||
+          "Gracias. Recibimos tu consulta y te vamos a responder por correo.",
+      );
+      form.reset();
+    } catch (error) {
+      setContactStatus("error");
+      setContactMessage(
+        error instanceof Error
+          ? error.message
+          : "No pudimos enviar la consulta. Intentá nuevamente.",
+      );
+    }
   }
 
   return (
@@ -682,6 +717,14 @@ export default function Home() {
         </div>
 
         <form className="contact-form" onSubmit={submitContact}>
+          <input
+            aria-hidden="true"
+            autoComplete="off"
+            className="contact-honeypot"
+            name="website"
+            tabIndex={-1}
+            type="text"
+          />
           <label>
             Nombre
             <input name="name" type="text" placeholder="Tu nombre" required />
@@ -715,13 +758,21 @@ export default function Home() {
               required
             />
           </label>
-          <button className="button button-primary" type="submit">
-            Enviar consulta
+          <button
+            className="button button-primary"
+            disabled={contactStatus === "sending"}
+            type="submit"
+          >
+            {contactStatus === "sending" ? "Enviando..." : "Enviar consulta"}
           </button>
-          {sent && (
-            <p className="form-success" role="status">
-              Gracias. Este formulario es demostrativo y todavía no envía
-              correos; queda listo para conectar el destino real.
+          {contactMessage && (
+            <p
+              className={
+                contactStatus === "error" ? "form-error" : "form-success"
+              }
+              role="status"
+            >
+              {contactMessage}
             </p>
           )}
         </form>

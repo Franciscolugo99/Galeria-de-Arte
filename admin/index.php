@@ -337,6 +337,11 @@ $boot = [
                   <small>Opcional. Se muestra como medio de contacto.</small>
                 </label>
                 <label>
+                  Correo que recibe consultas
+                  <input name="notification_email" type="email" placeholder="info@carinadonaire.com.ar">
+                  <small>No se muestra en el sitio. Ahí llegan los formularios.</small>
+                </label>
+                <label>
                   Correo de recuperación
                   <input name="recovery_email" type="email" placeholder="cuenta@gmail.com">
                   <small>No se muestra en el sitio.</small>

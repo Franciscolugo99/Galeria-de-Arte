@@ -11,6 +11,7 @@ for (const name of required) {
 }
 
 const phpString = (value) => `'${String(value).replaceAll("\\", "\\\\").replaceAll("'", "\\'")}'`;
+const phpInt = (value, fallback) => Number.parseInt(value || "", 10) || fallback;
 const config = `<?php
 declare(strict_types=1);
 
@@ -27,6 +28,14 @@ return [
     'original_dir' => dirname(__DIR__) . '/storage/originals',
     'max_upload_bytes' => 15 * 1024 * 1024,
     'storage_capacity_bytes' => 10_000_000_000,
+    'smtp_host' => ${phpString(process.env.WIROOS_SMTP_HOST || '')},
+    'smtp_port' => ${phpInt(process.env.WIROOS_SMTP_PORT, 465)},
+    'smtp_username' => ${phpString(process.env.WIROOS_SMTP_USERNAME || '')},
+    'smtp_password' => ${phpString(process.env.WIROOS_SMTP_PASSWORD || '')},
+    'smtp_secure' => ${phpString(process.env.WIROOS_SMTP_SECURE || 'ssl')},
+    'smtp_from' => ${phpString(process.env.WIROOS_SMTP_FROM || process.env.WIROOS_SMTP_USERNAME || '')},
+    'smtp_from_name' => ${phpString(process.env.WIROOS_SMTP_FROM_NAME || 'Carina Donaire')},
+    'contact_recipient' => ${phpString(process.env.WIROOS_CONTACT_RECIPIENT || process.env.WIROOS_SMTP_USERNAME || '')},
 ];
 `;
 await writeFile(path.join(releaseRoot, "api", "config.local.php"), config, "utf8");

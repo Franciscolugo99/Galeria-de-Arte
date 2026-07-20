@@ -1001,9 +1001,31 @@ p {
   width: 100%;
 }
 
+.contact-form .button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.contact-honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .form-success {
   margin: 17px 0 0;
   color: var(--olive);
+  font-size: 13px;
+  line-height: 1.6;
+  animation: form-confirm 220ms var(--ease-control) both;
+}
+
+.form-error {
+  margin: 17px 0 0;
+  color: #9a3f2f;
   font-size: 13px;
   line-height: 1.6;
   animation: form-confirm 220ms var(--ease-control) both;

@@ -91,7 +91,7 @@ function settings_defaults(): array
 {
     return [
         'artist_name' => 'Carina Donaire',
-        'artist_bio' => 'Texto de presentación a definir con la artista.',
+        'artist_bio' => '',
         'artist_location' => 'Mendoza, Argentina',
         'artist_photo' => '',
         'contact_email' => '',

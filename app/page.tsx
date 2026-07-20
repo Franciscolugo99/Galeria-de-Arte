@@ -84,6 +84,19 @@ function cleanWorkText(value?: string | null) {
   return text && !placeholderTexts.has(text) ? text : "";
 }
 
+function getArtistBioParagraphs(value?: string | null) {
+  const text = (value ?? "").trim();
+  const lowerText = text.toLocaleLowerCase("es-AR");
+  const isPlaceholder =
+    !text ||
+    lowerText.includes("a definir") ||
+    lowerText.includes("se completará próximamente") ||
+    lowerText.includes("información biográfica") ||
+    lowerText.includes("recorrido y proceso artístico");
+
+  return isPlaceholder ? [] : text.split(/\n+/);
+}
+
 function getWorkSpecs(work: Work) {
   return [cleanWorkText(work.medium), cleanWorkText(work.size)].filter(Boolean);
 }
@@ -374,6 +387,7 @@ export default function Home() {
   const selectedDescription = selectedWork
     ? cleanWorkText(selectedWork.description)
     : "";
+  const artistBioParagraphs = getArtistBioParagraphs(settings.artist_bio);
 
   return (
     <main>
@@ -408,13 +422,12 @@ export default function Home() {
         <div className="hero-copy reveal reveal-delay">
           <p className="eyebrow">Carina Donaire · Artista visual</p>
           <h1>
-            Arte que conserva una <em>historia</em>
+            Pintura original <em>hecha a mano</em>
           </h1>
           <span className="brush-stroke" aria-hidden="true" />
           <p className="hero-intro">
-            Obras originales creadas a mano: composiciones figurativas,
-            naturaleza y búsquedas abstractas donde cada pincelada conserva
-            una historia.
+            Portfolio de obras originales, piezas figurativas, naturaleza y
+            encargos personalizados realizados en Mendoza.
           </p>
           <div className="hero-actions">
             <a className="button button-primary" href="#obras">
@@ -429,7 +442,7 @@ export default function Home() {
         <div className="hero-gallery reveal">
           <div className="hero-landscape">
             <img
-              src="/art/obras-reales/contexto/carina-pintando-alas.webp"
+              src="/art/obras-reales/contexto/carina-pintando-alas-hero.webp"
               alt="Carina Donaire pintando alas coloridas sobre madera"
               decoding="async"
               fetchPriority="high"
@@ -444,7 +457,7 @@ export default function Home() {
             />
             <span>Obra original</span>
           </div>
-          <p className="hero-note">Carina en proceso de obra</p>
+          <p className="hero-note">Pintura mural sobre madera</p>
         </div>
       </section>
 
@@ -458,8 +471,10 @@ export default function Home() {
 
       <section className="intro section-shell scroll-reveal" id="artista">
         <p className="section-kicker">La obra</p>
-        <div className={settings.artist_photo ? "intro-grid has-photo" : "intro-grid"}>
-          <h2>Pintar lo que una fotografía no puede contar.</h2>
+        <div
+          className={settings.artist_photo ? "intro-grid has-photo" : "intro-grid"}
+        >
+          <h2>Obras originales, retratos y encargos personalizados.</h2>
           {settings.artist_photo && (
             <div className="artist-photo">
               <img
@@ -471,10 +486,9 @@ export default function Home() {
             </div>
           )}
           <div>
-            {settings.artist_bio.trim() &&
-              settings.artist_bio.split(/\n+/).map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
+            {artistBioParagraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
             <a className="text-link" href="#contacto">
               Consultar por obras o encargos <span aria-hidden="true">↗</span>
             </a>
@@ -653,28 +667,28 @@ export default function Home() {
         </div>
         <div className="commission-content scroll-reveal">
           <p className="section-kicker">Obras por encargo</p>
-          <h2>Un retrato creado especialmente para vos.</h2>
+          <h2>Retratos y obras por encargo.</h2>
           <p className="commission-lead">
-            Personas, familias, mascotas o paisajes significativos. La
-            información final sobre técnicas, formatos y plazos se completará
-            cuando la artista comparta sus condiciones reales de trabajo.
+            Consultas por retratos, mascotas, paisajes u obras personalizadas.
+            Los detalles de técnica, formato, tiempos y condiciones se
+            coordinan directamente con la artista.
           </p>
           <ol className="steps">
             {[
               [
                 "01",
-                "Contame tu idea",
-                "Enviame las fotografías de referencia y el tipo de obra que imaginás.",
+                "Enviar referencia",
+                "Compartí las imágenes y el tipo de obra que querés consultar.",
               ],
               [
                 "02",
-                "Definimos la obra",
-                "Acordamos composición, formato y condiciones antes de iniciar la pintura.",
+                "Definir formato",
+                "Se revisan composición, tamaño y condiciones antes de iniciar.",
               ],
               [
                 "03",
-                "Comienza la pintura",
-                "El seguimiento del proceso se ajustará al modo de trabajo real de la artista.",
+                "Coordinar inicio",
+                "La artista confirma disponibilidad y próximos pasos por correo.",
               ],
             ].map(([number, title, description], index) => (
               <li
@@ -699,10 +713,10 @@ export default function Home() {
       <section className="contact section-shell scroll-reveal" id="contacto">
         <div className="contact-copy">
           <p className="section-kicker">Contacto</p>
-          <h2>¿Tenés una historia que te gustaría convertir en arte?</h2>
+          <h2>Consultá por obras disponibles o encargos.</h2>
           <p>
-            Escribí para consultar por obras disponibles, retratos
-            personalizados o una pieza pensada especialmente para un recuerdo.
+            Escribí para coordinar una consulta, pedir información sobre una
+            obra o encargar una pieza personalizada.
           </p>
           {(settings.contact_email ||
             settings.instagram_url ||

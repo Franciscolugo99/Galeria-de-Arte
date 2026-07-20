@@ -203,7 +203,7 @@ $boot = [
                 </label>
                 <label class="span-2">
                   Descripción
-                  <textarea name="description" rows="5" placeholder="Contá brevemente la historia, inspiración o particularidades de la obra."></textarea>
+                  <textarea name="description" rows="5" placeholder="Agregá detalles concretos de la obra si corresponde."></textarea>
                 </label>
               </div>
             </fieldset>
@@ -319,7 +319,7 @@ $boot = [
               </label>
               <label>
                 Descripción breve de la artista
-                <textarea name="artist_bio" rows="6" maxlength="3000" placeholder="Contá brevemente su recorrido, inspiración y forma de trabajar."></textarea>
+                <textarea name="artist_bio" rows="6" maxlength="3000" placeholder="Agregá una presentación breve cuando la artista entregue el texto final."></textarea>
                 <small>Opcional. Se muestra en la sección “Sobre mí”; podés escribir más de un párrafo.</small>
               </label>
               <label>

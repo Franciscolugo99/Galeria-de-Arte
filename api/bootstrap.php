@@ -67,15 +67,112 @@ function directory_size(string $directory): int
     return $bytes;
 }
 
+function add_storage_file(array &$files, string $path): void
+{
+    $path = trim($path);
+    if ($path === '' || !is_file($path)) {
+        return;
+    }
+
+    $realPath = realpath($path);
+    if ($realPath === false || is_link($realPath)) {
+        return;
+    }
+
+    $files[$realPath] = filesize($realPath) ?: 0;
+}
+
+function collect_storage_directory_files(array &$files, string $directory): void
+{
+    if (!is_dir($directory)) {
+        return;
+    }
+
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS)
+    );
+    foreach ($iterator as $file) {
+        if ($file->isFile() && !$file->isLink()) {
+            add_storage_file($files, $file->getPathname());
+        }
+    }
+}
+
+function gallery_file_from_public_path(string $path, array $config): ?string
+{
+    $path = trim($path);
+    if ($path === '') {
+        return null;
+    }
+
+    if (is_file($path)) {
+        return $path;
+    }
+
+    $urlPath = (string) parse_url($path, PHP_URL_PATH);
+    if ($urlPath === '') {
+        return null;
+    }
+
+    $uploadUrl = rtrim((string) ($config['upload_url'] ?? '/uploads/works'), '/');
+    $profileUrl = rtrim((string) ($config['profile_upload_url'] ?? '/uploads/profile'), '/');
+
+    if (str_starts_with($urlPath, $uploadUrl . '/')) {
+        return rtrim((string) $config['upload_dir'], '/\\') . '/' . basename($urlPath);
+    }
+    if (str_starts_with($urlPath, $profileUrl . '/')) {
+        return rtrim((string) $config['profile_upload_dir'], '/\\') . '/' . basename($urlPath);
+    }
+
+    $candidates = [
+        PROJECT_ROOT . $urlPath,
+        PROJECT_ROOT . '/public' . $urlPath,
+    ];
+    foreach ($candidates as $candidate) {
+        if (is_file($candidate)) {
+            return $candidate;
+        }
+    }
+
+    return null;
+}
+
 function gallery_storage_usage(): array
 {
     $config = app_config();
+    $files = [];
     $directories = array_unique([
         $config['original_dir'],
         $config['upload_dir'],
         $config['profile_upload_dir'],
     ]);
-    $usedBytes = array_sum(array_map('directory_size', $directories));
+    foreach ($directories as $directory) {
+        collect_storage_directory_files($files, (string) $directory);
+    }
+
+    try {
+        $imageRows = db()
+            ->query('SELECT original_path, image_path, thumbnail_path FROM work_images')
+            ->fetchAll();
+        foreach ($imageRows as $image) {
+            foreach (['original_path', 'image_path', 'thumbnail_path'] as $field) {
+                $file = gallery_file_from_public_path((string) ($image[$field] ?? ''), $config);
+                if ($file !== null) {
+                    add_storage_file($files, $file);
+                }
+            }
+        }
+
+        $profilePhoto = (string) (all_settings()['artist_photo'] ?? '');
+        $profileFile = gallery_file_from_public_path($profilePhoto, $config);
+        if ($profileFile !== null) {
+            add_storage_file($files, $profileFile);
+        }
+    } catch (Throwable) {
+        // Si la base no está disponible, mantenemos el cálculo por carpetas.
+    }
+
+    $usedBytes = array_sum($files);
     $capacityBytes = max(1, (int) ($config['storage_capacity_bytes'] ?? 10_000_000_000));
     $percentage = min(100, round(($usedBytes / $capacityBytes) * 100, 2));
 

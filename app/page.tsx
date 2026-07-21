@@ -33,7 +33,6 @@ interface SiteSettings {
   artist_bio: string;
   artist_location: string;
   artist_photo: string;
-  contact_email: string;
   instagram_url: string;
   facebook_url: string;
   whatsapp_url: string;
@@ -44,10 +43,9 @@ const defaultSettings: SiteSettings = {
   artist_bio: "Texto de presentación a definir con la artista.",
   artist_location: "Mendoza, Argentina",
   artist_photo: "",
-  contact_email: "",
   instagram_url: "",
   facebook_url: "",
-  whatsapp_url: "",
+  whatsapp_url: "https://wa.me/5492634620883",
 };
 
 const navLinks = [
@@ -101,6 +99,56 @@ function getWorkSpecs(work: Work) {
   return [cleanWorkText(work.medium), cleanWorkText(work.size)].filter(Boolean);
 }
 
+function getFormValue(data: FormData, key: string) {
+  return String(data.get(key) ?? "").trim();
+}
+
+function buildWhatsAppMessage(data: FormData) {
+  const name = getFormValue(data, "name");
+  const interest = getFormValue(data, "interest") || "Consulta desde la web";
+  const message = getFormValue(data, "message");
+
+  return [
+    "Hola Carina, te escribo desde carinadonaire.com.ar.",
+    "",
+    `Nombre: ${name}`,
+    `Consulta: ${interest}`,
+    "",
+    "Mensaje:",
+    message,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function buildWhatsAppUrl(rawUrl: string, message: string) {
+  const value = rawUrl.trim();
+  if (!value) return "";
+
+  try {
+    const url = new URL(value);
+    if (!["http:", "https:"].includes(url.protocol)) return "";
+
+    const host = url.hostname.replace(/^www\./, "");
+    if (host === "wa.me") {
+      const phone = url.pathname.replace(/\D/g, "");
+      if (!phone) return "";
+      const next = new URL(`https://wa.me/${phone}`);
+      next.searchParams.set("text", message);
+      return next.toString();
+    }
+
+    if (host === "api.whatsapp.com" || host.endsWith(".whatsapp.com")) {
+      url.searchParams.set("text", message);
+      return url.toString();
+    }
+
+    return "";
+  } catch {
+    return "";
+  }
+}
+
 export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [category, setCategory] = useState<Category>("Todas");
@@ -109,7 +157,7 @@ export default function Home() {
   >("idle");
   const [contactMessage, setContactMessage] = useState("");
   const [works, setWorks] = useState<Work[]>([]);
-  const [catalogMessage, setCatalogMessage] = useState("Cargando obras…");
+  const [catalogMessage, setCatalogMessage] = useState("Cargando obras...");
   const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
   const [selectedWork, setSelectedWork] = useState<Work | null>(null);
   const lightboxRef = useRef<HTMLDivElement>(null);
@@ -187,7 +235,11 @@ export default function Home() {
         const payload = (await response.json()) as {
           settings?: Partial<SiteSettings>;
         };
-        setSettings({ ...defaultSettings, ...payload.settings });
+        const nextSettings = { ...defaultSettings, ...payload.settings };
+        if (!nextSettings.whatsapp_url.trim()) {
+          nextSettings.whatsapp_url = defaultSettings.whatsapp_url;
+        }
+        setSettings(nextSettings);
       } catch (error) {
         if ((error as Error).name !== "AbortError") {
           setSettings(defaultSettings);
@@ -345,42 +397,36 @@ export default function Home() {
     setCategory(nextCategory);
   }
 
-  async function submitContact(event: FormEvent<HTMLFormElement>) {
+  function submitContact(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
-    setContactStatus("sending");
-    setContactMessage("Enviando consulta...");
-    try {
-      const response = await fetch("/api/contact.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(Object.fromEntries(data.entries())),
-      });
-      const payload = (await response.json().catch(() => ({}))) as {
-        message?: string;
-        error?: string;
-      };
-      if (!response.ok) {
-        throw new Error(payload.error || "No pudimos enviar la consulta.");
-      }
-      setContactStatus("sent");
-      setContactMessage(
-        payload.message ||
-          "Gracias. Recibimos tu consulta y te vamos a responder por correo.",
-      );
-      form.reset();
-    } catch (error) {
+    const message = buildWhatsAppMessage(data);
+    const whatsappUrl = buildWhatsAppUrl(settings.whatsapp_url, message);
+
+    if (!whatsappUrl) {
       setContactStatus("error");
       setContactMessage(
-        error instanceof Error
-          ? error.message
-          : "No pudimos enviar la consulta. Intentá nuevamente.",
+        "El WhatsApp de contacto todavia no esta configurado. Revisalo desde el panel.",
       );
+      return;
     }
+
+    setContactStatus("sending");
+    setContactMessage("Abriendo WhatsApp...");
+
+    const opened = window.open(whatsappUrl, "_blank");
+    if (opened) {
+      opened.opener = null;
+    } else {
+      window.location.assign(whatsappUrl);
+    }
+
+    setContactStatus("sent");
+    setContactMessage(
+      "Se abrio WhatsApp con tu consulta preparada para enviar.",
+    );
+    form.reset();
   }
 
   const selectedWorkSpecs = selectedWork ? getWorkSpecs(selectedWork) : [];
@@ -688,7 +734,7 @@ export default function Home() {
               [
                 "03",
                 "Coordinar inicio",
-                "La artista confirma disponibilidad y próximos pasos por correo.",
+                "La artista confirma disponibilidad y próximos pasos por WhatsApp.",
               ],
             ].map(([number, title, description], index) => (
               <li
@@ -718,20 +764,11 @@ export default function Home() {
             Escribí para coordinar una consulta, pedir información sobre una
             obra o encargar una pieza personalizada.
           </p>
-          {(settings.contact_email ||
-            settings.instagram_url ||
+          {(settings.instagram_url ||
             settings.facebook_url ||
             settings.whatsapp_url ||
             settings.artist_location) && (
             <div className="contact-details">
-              {settings.contact_email && (
-                <p>
-                  <span>Correo</span>
-                  <a href={`mailto:${settings.contact_email}`}>
-                    {settings.contact_email}
-                  </a>
-                </p>
-              )}
               {settings.instagram_url && (
                 <p>
                   <span>Instagram</span>
@@ -783,31 +820,33 @@ export default function Home() {
             Nombre
             <input name="name" type="text" placeholder="Tu nombre" required />
           </label>
-          <label>
-            Correo
-            <input
-              name="email"
-              type="email"
-              placeholder="tunombre@email.com"
-              required
-            />
-          </label>
-          <label>
-            Me interesa
-            <select name="interest" defaultValue="">
-              <option value="" disabled>
-                Seleccioná una opción
-              </option>
-              <option>Encargar un retrato</option>
-              <option>Comprar una obra disponible</option>
-              <option>Realizar otra consulta</option>
-            </select>
-          </label>
+          <fieldset className="interest-field">
+            <legend>Me interesa</legend>
+            <div className="interest-options">
+              {[
+                "Encargar un retrato",
+                "Comprar una obra disponible",
+                "Realizar otra consulta",
+              ].map((option, index) => (
+                <label className="interest-option" key={option}>
+                  <input
+                    defaultChecked={index === 0}
+                    name="interest"
+                    type="radio"
+                    value={option}
+                  />
+                  <span>{option}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <label>
             Mensaje
             <textarea
               name="message"
               rows={5}
+              minLength={10}
+              maxLength={3000}
               placeholder="Contame brevemente tu idea..."
               required
             />
@@ -822,7 +861,9 @@ export default function Home() {
             </span>
             <span className="paint-line" aria-hidden="true" />
             <span className="submit-label">
-              {contactStatus === "sending" ? "Enviando..." : "Enviar consulta"}
+              {contactStatus === "sending"
+                ? "Abriendo WhatsApp..."
+                : "Enviar por WhatsApp"}
             </span>
           </button>
           {contactMessage && (

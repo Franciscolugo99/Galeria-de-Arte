@@ -13,6 +13,9 @@ return [
     'profile_upload_url' => '/uploads/profile',
     'original_dir' => dirname(__DIR__) . '/storage/originals',
     'max_upload_bytes' => 15 * 1024 * 1024,
+    'max_image_pixels' => 24_000_000,
+    'max_image_side' => 7000,
+    'max_upload_files' => 10,
     // Capacidad contratada. El plan de 10 GB equivale a 10.000.000.000 bytes.
     'storage_capacity_bytes' => 10_000_000_000,
     'smtp_host' => '',

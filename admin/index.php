@@ -333,21 +333,6 @@ $boot = [
               <legend>Contacto y redes</legend>
               <div class="field-grid">
                 <label>
-                  Correo público
-                  <input name="contact_email" type="email" placeholder="contacto@tudominio.com">
-                  <small>Opcional. Se muestra como medio de contacto.</small>
-                </label>
-                <label>
-                  Correo que recibe consultas
-                  <input name="notification_email" type="email" placeholder="info@carinadonaire.com.ar">
-                  <small>No se muestra en el sitio. Ahí llegan los formularios.</small>
-                </label>
-                <label>
-                  Correo de recuperación
-                  <input name="recovery_email" type="email" placeholder="cuenta@gmail.com">
-                  <small>No se muestra en el sitio.</small>
-                </label>
-                <label>
                   Instagram
                   <input name="instagram_url" type="url" placeholder="https://instagram.com/usuario">
                   <small>Opcional. Pegá el enlace completo.</small>

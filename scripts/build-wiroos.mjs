@@ -58,7 +58,6 @@ const html = `<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex,nofollow">
   <meta name="description" content="Obras originales, paisajes y retratos realistas pintados a mano en Mendoza, Argentina.">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <title>Carina Donaire | Pintura realista y retratos</title>
@@ -128,8 +127,14 @@ await writeFile(
   `Options -Indexes
 DirectoryIndex index.html index.php
 <IfModule mod_headers.c>
-  Header always set X-Robots-Tag "noindex, nofollow"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 </IfModule>
+<FilesMatch "^(\\.install-token|\\.env.*|config\\.local\\.php)$">
+  Require all denied
+</FilesMatch>
 `,
   "utf8",
 );

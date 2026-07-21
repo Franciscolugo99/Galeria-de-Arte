@@ -27,6 +27,9 @@ return [
     'profile_upload_url' => '/uploads/profile',
     'original_dir' => dirname(__DIR__) . '/storage/originals',
     'max_upload_bytes' => 15 * 1024 * 1024,
+    'max_image_pixels' => 24_000_000,
+    'max_image_side' => 7000,
+    'max_upload_files' => 10,
     'storage_capacity_bytes' => 10_000_000_000,
     'smtp_host' => ${phpString(process.env.WIROOS_SMTP_HOST || '')},
     'smtp_port' => ${phpInt(process.env.WIROOS_SMTP_PORT, 465)},
@@ -43,8 +46,9 @@ await writeFile(path.join(releaseRoot, "api", "config.local.php"), config, "utf8
 const schema = await readFile(path.join(projectRoot, "database", "schema.sql"), "utf8");
 const seed = await readFile(path.join(projectRoot, "database", "seed.sql"), "utf8");
 const sqlPayload = Buffer.from(`${schema}\n${seed}`, "utf8").toString("base64");
-const token = randomBytes(24).toString("hex");
-const installer = `<?php
+if (process.env.WIROOS_INCLUDE_INSTALLER === "1") {
+  const token = randomBytes(24).toString("hex");
+  const installer = `<?php
 declare(strict_types=1);
 require __DIR__ . '/api/bootstrap.php';
 
@@ -66,7 +70,13 @@ foreach ($statements as $statement) {
 }
 
 $tables = (int) db()->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN ('users','categories','works','work_images','settings')")->fetchColumn();
+if ($tables === 5) {
+    @unlink(__FILE__);
+    @unlink(__DIR__ . '/.install-token');
+}
 json_response(['ok' => $tables === 5, 'tables' => $tables]);
 `;
-await writeFile(path.join(releaseRoot, "_install.php"), installer, "utf8");
-await writeFile(path.join(releaseRoot, ".install-token"), token, "utf8");
+  await writeFile(path.join(releaseRoot, "_install.php"), installer, "utf8");
+  await writeFile(path.join(releaseRoot, ".install-token"), token, "utf8");
+  console.log(`Instalador temporal creado. Token: ${token}`);
+}

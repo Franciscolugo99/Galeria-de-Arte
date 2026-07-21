@@ -11,12 +11,6 @@ function app_config(): array
         return $config;
     }
 
-    $localFile = API_ROOT . '/config.local.php';
-    if (is_file($localFile)) {
-        $config = require $localFile;
-        return $config;
-    }
-
     $serverName = strtolower((string) ($_SERVER['SERVER_NAME'] ?? 'localhost'));
     $isIpAddress = filter_var($serverName, FILTER_VALIDATE_IP) !== false;
     $isPrivateIp = $isIpAddress
@@ -29,7 +23,7 @@ function app_config(): array
         || $isPrivateIp
         || PHP_SAPI === 'cli';
 
-    $config = [
+    $defaults = [
         'db_host' => getenv('GALLERY_DB_HOST') ?: '127.0.0.1',
         'db_port' => getenv('GALLERY_DB_PORT') ?: '3306',
         'db_name' => getenv('GALLERY_DB_NAME') ?: 'galeria_arte',
@@ -41,11 +35,22 @@ function app_config(): array
         'profile_upload_url' => getenv('GALLERY_PROFILE_UPLOAD_URL') ?: '/uploads/profile',
         'original_dir' => PROJECT_ROOT . '/storage/originals',
         'max_upload_bytes' => 15 * 1024 * 1024,
+        'max_image_pixels' => 24_000_000,
+        'max_image_side' => 7000,
+        'max_upload_files' => 10,
         // Wiroos informa la capacidad del plan en GB decimales. Este valor
         // representa el espacio reservado para la galería, no el disco de la PC.
         'storage_capacity_bytes' => (int) (getenv('GALLERY_STORAGE_CAPACITY_BYTES') ?: 10_000_000_000),
     ];
 
+    $localFile = API_ROOT . '/config.local.php';
+    if (is_file($localFile)) {
+        $localConfig = require $localFile;
+        $config = array_replace($defaults, is_array($localConfig) ? $localConfig : []);
+        return $config;
+    }
+
+    $config = $defaults;
     return $config;
 }
 
@@ -196,7 +201,7 @@ function settings_defaults(): array
         'recovery_email' => '',
         'instagram_url' => '',
         'facebook_url' => '',
-        'whatsapp_url' => '',
+        'whatsapp_url' => 'https://wa.me/5492634620883',
     ];
 }
 
@@ -205,7 +210,11 @@ function all_settings(): array
     $settings = settings_defaults();
     foreach (db()->query('SELECT setting_key, setting_value FROM settings')->fetchAll() as $row) {
         if (array_key_exists($row['setting_key'], $settings)) {
-            $settings[$row['setting_key']] = (string) ($row['setting_value'] ?? '');
+            $value = (string) ($row['setting_value'] ?? '');
+            if ($row['setting_key'] === 'whatsapp_url' && trim($value) === '') {
+                continue;
+            }
+            $settings[$row['setting_key']] = $value;
         }
     }
     return $settings;
@@ -244,6 +253,7 @@ function start_secure_session(): void
         return;
     }
 
+    ini_set('session.use_strict_mode', '1');
     session_name('galeria_admin');
     session_set_cookie_params([
         'lifetime' => 0,
@@ -280,6 +290,66 @@ function json_input(): array
     }
     $data = json_decode($content, true);
     return is_array($data) ? $data : [];
+}
+
+function client_rate_identity(): string
+{
+    $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? 'cli');
+    $agent = substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 180);
+    return hash('sha256', $ip . '|' . $agent);
+}
+
+function enforce_rate_limit(string $bucket, int $maxAttempts, int $windowSeconds, string $message): void
+{
+    if ($maxAttempts < 1 || $windowSeconds < 1) {
+        return;
+    }
+
+    $directory = PROJECT_ROOT . '/storage/rate-limit';
+    if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+        error_log('No se pudo preparar rate-limit en storage.');
+        return;
+    }
+
+    $safeBucket = preg_replace('/[^a-z0-9_-]+/i', '-', $bucket) ?: 'general';
+    $file = $directory . '/' . $safeBucket . '-' . client_rate_identity() . '.json';
+    $now = time();
+    $blocked = false;
+    $retryAfter = $windowSeconds;
+    $handle = fopen($file, 'c+');
+    if ($handle === false) {
+        error_log('No se pudo abrir rate-limit.');
+        return;
+    }
+
+    try {
+        flock($handle, LOCK_EX);
+        $raw = stream_get_contents($handle);
+        $stored = is_string($raw) && $raw !== '' ? json_decode($raw, true) : [];
+        $timestamps = is_array($stored) ? array_filter(
+            array_map('intval', $stored),
+            static fn(int $timestamp): bool => $timestamp > $now - $windowSeconds
+        ) : [];
+
+        if (count($timestamps) >= $maxAttempts) {
+            $blocked = true;
+            $oldest = min($timestamps);
+            $retryAfter = max(1, ($oldest + $windowSeconds) - $now);
+        } else {
+            $timestamps[] = $now;
+            rewind($handle);
+            ftruncate($handle, 0);
+            fwrite($handle, json_encode(array_values($timestamps)));
+        }
+    } finally {
+        flock($handle, LOCK_UN);
+        fclose($handle);
+    }
+
+    if ($blocked) {
+        header('Retry-After: ' . $retryAfter);
+        json_response(['error' => $message], 429);
+    }
 }
 
 function json_response(array $payload, int $status = 200): never
@@ -369,8 +439,9 @@ function delete_stored_image_files(array $image): void
 
 set_exception_handler(static function (Throwable $error): void {
     error_log($error->__toString());
-    $message = $error instanceof PDOException
+    $debug = getenv('GALLERY_DEBUG') === '1';
+    $message = $debug ? $error->getMessage() : ($error instanceof PDOException
         ? 'No pudimos conectarnos con el catálogo. Revisá la configuración de MySQL.'
-        : $error->getMessage();
+        : 'No pudimos procesar la solicitud. Intenta nuevamente en unos minutos.');
     json_response(['error' => $message], 500);
 });

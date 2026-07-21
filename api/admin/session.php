@@ -5,6 +5,7 @@ require dirname(__DIR__) . '/bootstrap.php';
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 if ($method === 'GET') {
+    enforce_rate_limit('admin-session-read', 60, 300, 'Demasiadas consultas de sesion. Espera unos minutos y proba de nuevo.');
     $user = current_user();
     $count = (int) db()->query('SELECT COUNT(*) FROM users')->fetchColumn();
     json_response([
@@ -15,6 +16,7 @@ if ($method === 'GET') {
     ]);
 }
 
+enforce_rate_limit('admin-session', 20, 300, 'Demasiados intentos. Espera unos minutos y proba de nuevo.');
 verify_csrf();
 
 if ($method === 'DELETE') {
@@ -22,7 +24,13 @@ if ($method === 'DELETE') {
     $_SESSION = [];
     if (ini_get('session.use_cookies')) {
         $params = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000, $params['path'], '', (bool) $params['secure'], true);
+        setcookie(session_name(), '', [
+            'expires' => time() - 42000,
+            'path' => $params['path'],
+            'secure' => (bool) $params['secure'],
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
     }
     session_destroy();
     json_response(['ok' => true]);
@@ -31,6 +39,8 @@ if ($method === 'DELETE') {
 if ($method !== 'POST') {
     json_response(['error' => 'Método no permitido.'], 405);
 }
+
+enforce_rate_limit('admin-login', 8, 900, 'Demasiados intentos de acceso. Espera unos minutos y proba de nuevo.');
 
 $input = json_input();
 $action = (string) ($input['action'] ?? 'login');
@@ -70,4 +80,3 @@ $_SESSION['user_id'] = (int) $user['id'];
 $statement = db()->prepare('UPDATE users SET last_login_at = NOW() WHERE id = ?');
 $statement->execute([(int) $user['id']]);
 json_response(['ok' => true]);
-

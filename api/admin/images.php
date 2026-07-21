@@ -66,6 +66,8 @@ if ($method !== 'POST') {
     json_response(['error' => 'Método no permitido.'], 405);
 }
 
+enforce_rate_limit('admin-image-upload', 30, 600, 'Demasiadas fotografias cargadas en poco tiempo. Espera unos minutos y proba de nuevo.');
+
 $workId = filter_input(INPUT_POST, 'work_id', FILTER_VALIDATE_INT);
 if (!$workId || empty($_FILES['images'])) {
     json_response(['error' => 'Seleccioná al menos una fotografía.'], 422);
@@ -87,6 +89,10 @@ $files = $_FILES['images'];
 $tmpNames = is_array($files['tmp_name']) ? $files['tmp_name'] : [$files['tmp_name']];
 $sizes = is_array($files['size']) ? $files['size'] : [$files['size']];
 $errors = is_array($files['error']) ? $files['error'] : [$files['error']];
+$maxUploadFiles = (int) ($config['max_upload_files'] ?? 10);
+if (count($tmpNames) > $maxUploadFiles) {
+    json_response(['error' => 'Subi hasta ' . $maxUploadFiles . ' fotografias por vez.'], 422);
+}
 $finfo = new finfo(FILEINFO_MIME_TYPE);
 $allowed = ['image/jpeg', 'image/png', 'image/webp'];
 
@@ -122,6 +128,18 @@ foreach ($tmpNames as $index => $tmpName) {
     if (!in_array($mime, $allowed, true)) {
         json_response(['error' => 'Solo se aceptan fotografías JPG, PNG o WebP.'], 422);
     }
+    $dimensions = @getimagesize($tmpName);
+    if ($dimensions === false) {
+        json_response(['error' => 'No pudimos leer las dimensiones de una fotografia.'], 422);
+    }
+    $pixelWidth = (int) ($dimensions[0] ?? 0);
+    $pixelHeight = (int) ($dimensions[1] ?? 0);
+    $maxPixels = (int) ($config['max_image_pixels'] ?? 24_000_000);
+    $maxSide = (int) ($config['max_image_side'] ?? 7000);
+    if ($pixelWidth < 1 || $pixelHeight < 1 || $pixelWidth > $maxSide || $pixelHeight > $maxSide || ($pixelWidth * $pixelHeight) > $maxPixels) {
+        json_response(['error' => 'La fotografia es demasiado grande. Exportala con menos resolucion y volve a subirla.'], 422);
+    }
+
     $sourceData = file_get_contents($tmpName);
     $source = $sourceData !== false ? imagecreatefromstring($sourceData) : false;
     if (!$source) {

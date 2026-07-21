@@ -51,5 +51,5 @@ INSERT INTO settings (setting_key, setting_value) VALUES
   ('recovery_email', ''),
   ('instagram_url', ''),
   ('facebook_url', ''),
-  ('whatsapp_url', '')
+  ('whatsapp_url', 'https://wa.me/5492634620883')
 ON DUPLICATE KEY UPDATE setting_value = setting_value;

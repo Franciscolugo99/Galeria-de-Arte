@@ -171,9 +171,11 @@ foreach ($tmpNames as $index => $tmpName) {
     $token = bin2hex(random_bytes(12));
     $originalExtension = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'][$mime];
     $originalFile = $config['original_dir'] . '/' . $token . '.' . $originalExtension;
-    if (!move_uploaded_file($tmpName, $originalFile)) {
-        imagedestroy($source);
-        throw new RuntimeException('No se pudo guardar la fotografía original.');
+    $storedOriginalFile = null;
+    if (move_uploaded_file($tmpName, $originalFile)) {
+        $storedOriginalFile = $originalFile;
+    } else {
+        error_log('No se pudo guardar la fotografía original en ' . $originalFile . '. Se continúa con las versiones WebP optimizadas.');
     }
 
     $makeVersion = static function (int $maxWidth, string $suffix) use ($source, $sourceWidth, $sourceHeight, $token, $config): array {
@@ -185,8 +187,11 @@ foreach ($tmpNames as $index => $tmpName) {
         imagesavealpha($canvas, true);
         imagecopyresampled($canvas, $source, 0, 0, 0, 0, $width, $height, $sourceWidth, $sourceHeight);
         $fileName = $token . '-' . $suffix . '.webp';
-        imagewebp($canvas, $config['upload_dir'] . '/' . $fileName, 84);
+        $created = imagewebp($canvas, $config['upload_dir'] . '/' . $fileName, 84);
         imagedestroy($canvas);
+        if (!$created) {
+            throw new RuntimeException('No se pudo generar la versión WebP de la fotografía.');
+        }
         return [$fileName, $width, $height];
     };
 
@@ -197,7 +202,7 @@ foreach ($tmpNames as $index => $tmpName) {
     $isCover = $imageCount === 0 && $index === 0 ? 1 : 0;
     $alt = sprintf('%s, fotografía %d', $workTitle, $imageCount + $index + 1);
     $statement = db()->prepare('INSERT INTO work_images (work_id, original_path, image_path, thumbnail_path, alt_text, width_px, height_px, sort_order, is_cover) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
-    $statement->execute([$workId, $originalFile, $config['upload_url'] . '/' . $largeName,
+    $statement->execute([$workId, $storedOriginalFile, $config['upload_url'] . '/' . $largeName,
         $config['upload_url'] . '/' . $thumbName, $alt, $width, $height, ($imageCount + $index) * 10, $isCover]);
     $uploaded[] = (int) db()->lastInsertId();
 }

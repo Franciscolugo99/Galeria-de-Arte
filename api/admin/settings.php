@@ -13,7 +13,27 @@ if ($method !== 'PUT') {
 
 verify_csrf();
 $input = json_input();
-$allowed = ['artist_name', 'artist_bio', 'artist_location', 'contact_email', 'notification_email', 'recovery_email', 'instagram_url', 'facebook_url', 'whatsapp_url'];
+$allowed = [
+    'artist_name',
+    'artist_bio',
+    'artist_location',
+    'contact_email',
+    'notification_email',
+    'recovery_email',
+    'instagram_url',
+    'facebook_url',
+    'whatsapp_url',
+    'contact_interest_options',
+    'commission_kicker',
+    'commission_title',
+    'commission_text',
+    'commission_step_1_title',
+    'commission_step_1_text',
+    'commission_step_2_title',
+    'commission_step_2_text',
+    'commission_step_3_title',
+    'commission_step_3_text',
+];
 $values = [];
 foreach ($allowed as $key) {
     $values[$key] = trim((string) ($input[$key] ?? ''));
@@ -24,6 +44,27 @@ if (mb_strlen($values['artist_name']) < 2 || mb_strlen($values['artist_name']) >
 }
 if (mb_strlen($values['artist_bio']) > 3000) {
     json_response(['error' => 'La presentación es demasiado extensa.'], 422);
+}
+if (mb_strlen($values['contact_interest_options']) > 800) {
+    json_response(['error' => 'Las opciones de consulta son demasiado extensas.'], 422);
+}
+if (count(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $values['contact_interest_options']) ?: []))) > 8) {
+    json_response(['error' => 'Usá hasta 8 opciones en “Me interesa”.'], 422);
+}
+foreach ([
+    'commission_kicker',
+    'commission_title',
+    'commission_text',
+    'commission_step_1_title',
+    'commission_step_1_text',
+    'commission_step_2_title',
+    'commission_step_2_text',
+    'commission_step_3_title',
+    'commission_step_3_text',
+] as $textKey) {
+    if (mb_strlen($values[$textKey]) > 900) {
+        json_response(['error' => 'Revisá los textos de encargos: hay un campo demasiado extenso.'], 422);
+    }
 }
 foreach (['contact_email', 'notification_email', 'recovery_email'] as $emailKey) {
     if ($values[$emailKey] !== '' && !filter_var($values[$emailKey], FILTER_VALIDATE_EMAIL)) {

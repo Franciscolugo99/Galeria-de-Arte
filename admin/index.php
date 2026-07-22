@@ -29,7 +29,7 @@ $boot = [
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" type="image/svg+xml" href="../public/favicon.svg?v=20260713-1">
   <title>Administración de obras</title>
-  <link rel="stylesheet" href="admin.css?v=20260718-8">
+  <link rel="stylesheet" href="admin.css?v=20260722-1">
 </head>
 <body>
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -348,6 +348,93 @@ $boot = [
                   <small>Opcional. Usá el enlace de WhatsApp con código de país.</small>
                 </label>
               </div>
+              <label>
+                Opciones de “Me interesa”
+                <textarea name="contact_interest_options" rows="4" maxlength="800" placeholder="Encargar un retrato&#10;Comprar una obra disponible&#10;Realizar otra consulta"></textarea>
+                <small>Escribí una opción por línea. La primera queda seleccionada por defecto.</small>
+              </label>
+            </fieldset>
+
+            <fieldset>
+              <legend>Portada</legend>
+              <p class="field-help">Estas imágenes se muestran en el primer bloque del sitio público.</p>
+              <div class="hero-image-settings">
+                <div class="hero-image-control">
+                  <div class="hero-admin-preview is-large" id="heroLargePreview"><span>Portada grande</span></div>
+                  <div>
+                    <strong>Imagen principal</strong>
+                    <small>Conviene usar una foto horizontal o vertical amplia, con buena luz.</small>
+                    <label class="button secondary hero-upload">
+                      Elegir imagen
+                      <input type="file" accept="image/jpeg,image/png,image/webp" data-hero-image-input data-hero-target="large">
+                    </label>
+                  </div>
+                </div>
+                <div class="hero-image-control">
+                  <div class="hero-admin-preview is-small" id="heroSmallPreview"><span>Portada chica</span></div>
+                  <div>
+                    <strong>Imagen de apoyo</strong>
+                    <small>Funciona mejor con una obra vertical o un recorte claro.</small>
+                    <label class="button secondary hero-upload">
+                      Elegir imagen
+                      <input type="file" accept="image/jpeg,image/png,image/webp" data-hero-image-input data-hero-target="small">
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Encargos</legend>
+              <div class="hero-image-control">
+                <div class="hero-admin-preview is-commission" id="commissionPreview"><span>Imagen de encargos</span></div>
+                <div>
+                  <strong>Imagen de la sección</strong>
+                  <small>Se usa junto al bloque de retratos y obras por encargo.</small>
+                  <label class="button secondary hero-upload">
+                    Elegir imagen
+                    <input type="file" accept="image/jpeg,image/png,image/webp" data-hero-image-input data-hero-target="commission">
+                  </label>
+                </div>
+              </div>
+              <div class="field-grid settings-step-grid">
+                <label>
+                  Etiqueta
+                  <input name="commission_kicker" maxlength="120" placeholder="Obras por encargo">
+                </label>
+                <label>
+                  Título
+                  <input name="commission_title" maxlength="180" placeholder="Retratos y obras por encargo.">
+                </label>
+                <label class="span-2">
+                  Texto principal
+                  <textarea name="commission_text" rows="4" maxlength="900" placeholder="Consultas por retratos, mascotas, paisajes u obras personalizadas."></textarea>
+                </label>
+                <label>
+                  Paso 1
+                  <input name="commission_step_1_title" maxlength="120" placeholder="Enviar referencia">
+                </label>
+                <label>
+                  Descripción paso 1
+                  <input name="commission_step_1_text" maxlength="220" placeholder="Compartí las imágenes y el tipo de obra que querés consultar.">
+                </label>
+                <label>
+                  Paso 2
+                  <input name="commission_step_2_title" maxlength="120" placeholder="Definir formato">
+                </label>
+                <label>
+                  Descripción paso 2
+                  <input name="commission_step_2_text" maxlength="220" placeholder="Se revisan composición, tamaño y condiciones antes de iniciar.">
+                </label>
+                <label>
+                  Paso 3
+                  <input name="commission_step_3_title" maxlength="120" placeholder="Coordinar inicio">
+                </label>
+                <label>
+                  Descripción paso 3
+                  <input name="commission_step_3_text" maxlength="220" placeholder="La artista confirma disponibilidad y próximos pasos por WhatsApp.">
+                </label>
+              </div>
             </fieldset>
           </div>
 
@@ -385,6 +472,6 @@ $boot = [
   </template>
 
   <script>window.__ADMIN_BOOT__ = <?= json_encode($boot, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;</script>
-  <script src="admin.js?v=20260718-15" defer></script>
+  <script src="admin.js?v=20260722-1" defer></script>
 </body>
 </html>

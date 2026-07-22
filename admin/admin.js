@@ -482,6 +482,9 @@
       element.textContent = payload.settings.artist_name || "Carina Donaire";
     });
     renderProfile(payload.settings.artist_photo);
+    renderHeroImage("large", payload.settings.hero_large_image);
+    renderHeroImage("small", payload.settings.hero_small_image);
+    renderHeroImage("commission", payload.settings.commission_image);
   }
 
   function renderProfile(path) {
@@ -494,6 +497,45 @@
     image.src = assetUrl(path);
     image.alt = "Fotografía actual de la artista";
     preview.replaceChildren(image);
+  }
+
+  function renderHeroImage(target, path) {
+    const previewIds = {
+      large: "heroLargePreview",
+      small: "heroSmallPreview",
+      commission: "commissionPreview",
+    };
+    const preview = byId(previewIds[target]);
+    if (!preview) return;
+    if (!path) {
+      preview.replaceChildren(Object.assign(document.createElement("span"), {
+        textContent: {
+          large: "Portada grande",
+          small: "Portada chica",
+          commission: "Imagen de encargos",
+        }[target],
+      }));
+      return;
+    }
+    const image = new Image();
+    image.src = assetUrl(path);
+    image.alt = {
+      large: "Imagen principal de portada",
+      small: "Imagen chica de portada",
+      commission: "Imagen de la sección de encargos",
+    }[target];
+    preview.replaceChildren(image);
+  }
+
+  function validateAdminImageFile(file) {
+    const extension = file.name.split(".").pop().toLowerCase();
+    if (!allowedImageTypes.has(file.type) && !allowedImageExtensions.has(extension)) {
+      return "Solo se aceptan fotografías JPG, PNG o WebP.";
+    }
+    if (file.size > maxImageBytes) {
+      return "La fotografía supera el máximo de 15 MB.";
+    }
+    return "";
   }
 
   async function saveSettings(event) {
@@ -523,6 +565,12 @@
     const file = event.currentTarget.files[0];
     if (!file) return;
     const message = byId("settingsMessage");
+    const validation = validateAdminImageFile(file);
+    if (validation) {
+      message.textContent = validation;
+      event.currentTarget.value = "";
+      return;
+    }
     message.textContent = "Optimizando fotografía…";
     const data = new FormData();
     data.append("image", file);
@@ -535,6 +583,39 @@
       message.textContent = error.message;
     } finally {
       event.currentTarget.value = "";
+    }
+  }
+
+  async function uploadHeroImage(event) {
+    const input = event.currentTarget;
+    const file = input.files[0];
+    if (!file) return;
+    const message = byId("settingsMessage");
+    const validation = validateAdminImageFile(file);
+    if (validation) {
+      message.textContent = validation;
+      input.value = "";
+      return;
+    }
+    const target = input.dataset.heroTarget;
+    const label = {
+      large: "portada grande",
+      small: "portada chica",
+      commission: "imagen de encargos",
+    }[target] || "imagen";
+    message.textContent = `Optimizando ${label}…`;
+    const data = new FormData();
+    data.append("target", target);
+    data.append("image", file);
+    try {
+      const payload = await request("/admin/hero-image.php", { method: "POST", body: data });
+      renderHeroImage(target, payload.url);
+      message.textContent = payload.message;
+      loadStorageUsage();
+    } catch (error) {
+      message.textContent = error.message;
+    } finally {
+      input.value = "";
     }
   }
 
@@ -865,6 +946,9 @@
     byId("categoryCreateForm").addEventListener("submit", (event) => saveCategory(event));
     byId("settingsForm").addEventListener("submit", saveSettings);
     byId("profileImageInput").addEventListener("change", uploadProfileImage);
+    document.querySelectorAll("[data-hero-image-input]").forEach((input) => {
+      input.addEventListener("change", uploadHeroImage);
+    });
     workForm.elements.images.addEventListener("change", handleSelectedImages);
     byId("uploadRetryButton").addEventListener("click", () => workForm.elements.images.click());
     document.querySelectorAll("[data-admin-view]").forEach((link) => {

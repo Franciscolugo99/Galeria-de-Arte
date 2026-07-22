@@ -33,6 +33,19 @@ interface SiteSettings {
   artist_bio: string;
   artist_location: string;
   artist_photo: string;
+  hero_large_image: string;
+  hero_small_image: string;
+  contact_interest_options: string;
+  commission_image: string;
+  commission_kicker: string;
+  commission_title: string;
+  commission_text: string;
+  commission_step_1_title: string;
+  commission_step_1_text: string;
+  commission_step_2_title: string;
+  commission_step_2_text: string;
+  commission_step_3_title: string;
+  commission_step_3_text: string;
   instagram_url: string;
   facebook_url: string;
   whatsapp_url: string;
@@ -43,6 +56,24 @@ const defaultSettings: SiteSettings = {
   artist_bio: "Texto de presentación a definir con la artista.",
   artist_location: "Mendoza, Argentina",
   artist_photo: "",
+  hero_large_image: "/art/obras-reales/contexto/carina-pintando-alas-hero.webp",
+  hero_small_image: "/art/obras-reales/uvas-borgona-vertical.webp",
+  contact_interest_options:
+    "Encargar un retrato\nComprar una obra disponible\nRealizar otra consulta",
+  commission_image: "/art/obras-reales/contexto/corcho-humeante-obra.webp",
+  commission_kicker: "Obras por encargo",
+  commission_title: "Retratos y obras por encargo.",
+  commission_text:
+    "Consultas por retratos, mascotas, paisajes u obras personalizadas. Los detalles de técnica, formato, tiempos y condiciones se coordinan directamente con la artista.",
+  commission_step_1_title: "Enviar referencia",
+  commission_step_1_text:
+    "Compartí las imágenes y el tipo de obra que querés consultar.",
+  commission_step_2_title: "Definir formato",
+  commission_step_2_text:
+    "Se revisan composición, tamaño y condiciones antes de iniciar.",
+  commission_step_3_title: "Coordinar inicio",
+  commission_step_3_text:
+    "La artista confirma disponibilidad y próximos pasos por WhatsApp.",
   instagram_url: "",
   facebook_url: "",
   whatsapp_url: "https://wa.me/5492634620883",
@@ -99,6 +130,22 @@ function getWorkSpecs(work: Work) {
   return [cleanWorkText(work.medium), cleanWorkText(work.size)].filter(Boolean);
 }
 
+function settingText(value: string | undefined, fallback: string) {
+  return value?.trim() || fallback;
+}
+
+function getContactInterestOptions(value?: string | null) {
+  const options = (value ?? "")
+    .split(/\r?\n/)
+    .map((option) => option.trim())
+    .filter(Boolean)
+    .slice(0, 8);
+
+  return options.length
+    ? options
+    : defaultSettings.contact_interest_options.split("\n");
+}
+
 function getFormValue(data: FormData, key: string) {
   return String(data.get(key) ?? "").trim();
 }
@@ -150,7 +197,6 @@ function buildWhatsAppUrl(rawUrl: string, message: string) {
 }
 
 export default function Home() {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [category, setCategory] = useState<Category>("Todas");
   const [contactStatus, setContactStatus] = useState<
     "idle" | "sending" | "sent" | "error"
@@ -250,28 +296,6 @@ export default function Home() {
     loadSettings();
     return () => controller.abort();
   }, []);
-
-  useEffect(() => {
-    if (!menuOpen) {
-      return;
-    }
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setMenuOpen(false);
-      }
-    }
-
-    window.addEventListener("keydown", closeOnEscape);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [menuOpen]);
 
   useEffect(() => {
     if (!lightboxOpen) return;
@@ -434,6 +458,44 @@ export default function Home() {
     ? cleanWorkText(selectedWork.description)
     : "";
   const artistBioParagraphs = getArtistBioParagraphs(settings.artist_bio);
+  const contactInterestOptions = getContactInterestOptions(
+    settings.contact_interest_options,
+  );
+  const commissionSteps = [
+    [
+      "01",
+      settingText(
+        settings.commission_step_1_title,
+        defaultSettings.commission_step_1_title,
+      ),
+      settingText(
+        settings.commission_step_1_text,
+        defaultSettings.commission_step_1_text,
+      ),
+    ],
+    [
+      "02",
+      settingText(
+        settings.commission_step_2_title,
+        defaultSettings.commission_step_2_title,
+      ),
+      settingText(
+        settings.commission_step_2_text,
+        defaultSettings.commission_step_2_text,
+      ),
+    ],
+    [
+      "03",
+      settingText(
+        settings.commission_step_3_title,
+        defaultSettings.commission_step_3_title,
+      ),
+      settingText(
+        settings.commission_step_3_text,
+        defaultSettings.commission_step_3_text,
+      ),
+    ],
+  ];
 
   return (
     <main>
@@ -441,23 +503,9 @@ export default function Home() {
         <a className="brand" href="#inicio" aria-label="Ir al inicio">
           {settings.artist_name}
         </a>
-        <button
-          className={menuOpen ? "menu-button is-open" : "menu-button"}
-          type="button"
-          aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
-          aria-expanded={menuOpen}
-          aria-controls="navegacion-principal"
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          <span />
-          <span />
-        </button>
-        <nav
-          id="navegacion-principal"
-          className={menuOpen ? "main-nav is-open" : "main-nav"}
-        >
+        <nav id="navegacion-principal" className="main-nav">
           {navLinks.map(([label, href]) => (
-            <a key={href} href={href} onClick={() => setMenuOpen(false)}>
+            <a key={href} href={href}>
               {label}
             </a>
           ))}
@@ -488,16 +536,22 @@ export default function Home() {
         <div className="hero-gallery reveal">
           <div className="hero-landscape">
             <img
-              src="/art/obras-reales/contexto/carina-pintando-alas-hero.webp"
-              alt="Carina Donaire pintando alas coloridas sobre madera"
+              src={
+                settings.hero_large_image ||
+                defaultSettings.hero_large_image
+              }
+              alt="Imagen principal de portada de Carina Donaire"
               decoding="async"
               fetchPriority="high"
             />
           </div>
           <div className="hero-portrait">
             <img
-              src="/art/obras-reales/uvas-borgona-vertical.webp"
-              alt="Pintura vertical de uvas en tonos borgoña y violeta"
+              src={
+                settings.hero_small_image ||
+                defaultSettings.hero_small_image
+              }
+              alt="Obra destacada en la portada"
               decoding="async"
               loading="eager"
             />
@@ -705,38 +759,33 @@ export default function Home() {
       <section className="commissions" id="encargos">
         <div className="commission-image scroll-reveal">
           <img
-            src="/art/obras-reales/contexto/corcho-humeante-obra.webp"
-            alt="Pintura de un corcho humeante sobre barriles"
+            src={settings.commission_image || defaultSettings.commission_image}
+            alt="Imagen de obra por encargo"
             decoding="async"
             loading="lazy"
           />
         </div>
         <div className="commission-content scroll-reveal">
-          <p className="section-kicker">Obras por encargo</p>
-          <h2>Retratos y obras por encargo.</h2>
+          <p className="section-kicker">
+            {settingText(
+              settings.commission_kicker,
+              defaultSettings.commission_kicker,
+            )}
+          </p>
+          <h2>
+            {settingText(
+              settings.commission_title,
+              defaultSettings.commission_title,
+            )}
+          </h2>
           <p className="commission-lead">
-            Consultas por retratos, mascotas, paisajes u obras personalizadas.
-            Los detalles de técnica, formato, tiempos y condiciones se
-            coordinan directamente con la artista.
+            {settingText(
+              settings.commission_text,
+              defaultSettings.commission_text,
+            )}
           </p>
           <ol className="steps">
-            {[
-              [
-                "01",
-                "Enviar referencia",
-                "Compartí las imágenes y el tipo de obra que querés consultar.",
-              ],
-              [
-                "02",
-                "Definir formato",
-                "Se revisan composición, tamaño y condiciones antes de iniciar.",
-              ],
-              [
-                "03",
-                "Coordinar inicio",
-                "La artista confirma disponibilidad y próximos pasos por WhatsApp.",
-              ],
-            ].map(([number, title, description], index) => (
+            {commissionSteps.map(([number, title, description], index) => (
               <li
                 className="scroll-reveal"
                 key={number}
@@ -823,11 +872,7 @@ export default function Home() {
           <fieldset className="interest-field">
             <legend>Me interesa</legend>
             <div className="interest-options">
-              {[
-                "Encargar un retrato",
-                "Comprar una obra disponible",
-                "Realizar otra consulta",
-              ].map((option, index) => (
+              {contactInterestOptions.map((option, index) => (
                 <label className="interest-option" key={option}>
                   <input
                     defaultChecked={index === 0}

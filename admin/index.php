@@ -374,7 +374,7 @@ $boot = [
                   <div class="hero-admin-preview is-small" id="heroSmallPreview"><span>Portada chica</span></div>
                   <div>
                     <strong>Imagen de apoyo</strong>
-                    <small>Funciona mejor con una obra vertical o un recorte claro.</small>
+                    <small>Se muestra completa, ideal para una obra o detalle que acompañe la portada.</small>
                     <label class="button secondary hero-upload">
                       Elegir imagen
                       <input type="file" accept="image/jpeg,image/png,image/webp" data-hero-image-input data-hero-target="small">

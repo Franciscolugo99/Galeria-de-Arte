@@ -223,9 +223,10 @@ button { color: inherit; }
 .hero-image-control small { display: block; max-width: 48ch; margin: 6px 0 13px; color: var(--muted); font-size: 11px; line-height: 1.5; }
 .hero-admin-preview { display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--stone); color: var(--muted); font-size: 11px; }
 .hero-admin-preview.is-large { aspect-ratio: 5 / 4; }
-.hero-admin-preview.is-small { aspect-ratio: 4 / 5; }
+.hero-admin-preview.is-small { aspect-ratio: 1; }
 .hero-admin-preview.is-commission { aspect-ratio: 1; }
 .hero-admin-preview img { width: 100%; height: 100%; object-fit: cover; }
+.hero-admin-preview.is-small img { padding: 8px; background: color-mix(in oklch, var(--paper) 58%, var(--stone)); object-fit: contain; }
 .hero-upload { display: inline-flex; min-width: 150px; align-items: center; justify-content: center; }
 .hero-upload input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .settings-step-grid { margin-top: 18px; }

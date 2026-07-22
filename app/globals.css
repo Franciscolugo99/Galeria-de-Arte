@@ -307,6 +307,9 @@ p {
 }
 
 .hero-portrait img {
+  height: auto;
+  background: color-mix(in oklch, var(--paper) 58%, var(--portrait-mat));
+  object-fit: contain;
   object-position: center;
 }
 
@@ -329,7 +332,7 @@ p {
 }
 
 .hero-portrait img {
-  aspect-ratio: 4 / 5;
+  max-height: min(31vh, 280px);
 }
 
 .hero-portrait span {

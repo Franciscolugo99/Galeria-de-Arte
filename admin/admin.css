@@ -229,6 +229,7 @@ button { color: inherit; }
 .hero-admin-preview.is-small img { padding: 8px; background: color-mix(in oklch, var(--paper) 58%, var(--stone)); object-fit: contain; }
 .hero-upload { display: inline-flex; min-width: 150px; align-items: center; justify-content: center; }
 .hero-upload input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.settings-form .hero-alt-field { margin-top: 16px; margin-bottom: 0; }
 .settings-step-grid { margin-top: 18px; }
 .profile-panel { position: sticky; top: 28px; padding: 24px; background: var(--warm-panel); box-shadow: var(--shadow); }
 .profile-panel h3 { margin: 0 0 16px; font-family: Georgia, serif; font-size: 21px; font-weight: 400; }

@@ -23,6 +23,8 @@ $allowed = [
     'instagram_url',
     'facebook_url',
     'whatsapp_url',
+    'hero_large_alt',
+    'hero_small_alt',
     'contact_interest_options',
     'commission_kicker',
     'commission_title',
@@ -44,6 +46,11 @@ if (mb_strlen($values['artist_name']) < 2 || mb_strlen($values['artist_name']) >
 }
 if (mb_strlen($values['artist_bio']) > 3000) {
     json_response(['error' => 'La presentación es demasiado extensa.'], 422);
+}
+foreach (['hero_large_alt', 'hero_small_alt'] as $altKey) {
+    if (mb_strlen($values[$altKey]) > 240) {
+        json_response(['error' => 'Los textos alternativos pueden tener hasta 240 caracteres.'], 422);
+    }
 }
 if (mb_strlen($values['contact_interest_options']) > 800) {
     json_response(['error' => 'Las opciones de consulta son demasiado extensas.'], 422);

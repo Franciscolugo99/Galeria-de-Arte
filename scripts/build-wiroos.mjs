@@ -59,6 +59,9 @@ const html = `<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Obras originales, paisajes y retratos realistas pintados a mano en Mendoza, Argentina.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <title>Carina Donaire | Pintura realista y retratos</title>
 ${cssLinks}

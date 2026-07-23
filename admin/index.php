@@ -27,6 +27,9 @@ $boot = [
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap">
   <link rel="icon" type="image/svg+xml" href="../public/favicon.svg?v=20260713-1">
   <title>Administración de obras</title>
   <link rel="stylesheet" href="admin.css?v=20260722-1">
@@ -368,6 +371,11 @@ $boot = [
                       Elegir imagen
                       <input type="file" accept="image/jpeg,image/png,image/webp" data-hero-image-input data-hero-target="large">
                     </label>
+                    <label class="hero-alt-field">
+                      Texto alternativo
+                      <input name="hero_large_alt" maxlength="240" placeholder="Describí qué aparece en la imagen principal.">
+                      <small>Breve y concreto, para personas que no pueden ver la imagen.</small>
+                    </label>
                   </div>
                 </div>
                 <div class="hero-image-control">
@@ -378,6 +386,11 @@ $boot = [
                     <label class="button secondary hero-upload">
                       Elegir imagen
                       <input type="file" accept="image/jpeg,image/png,image/webp" data-hero-image-input data-hero-target="small">
+                    </label>
+                    <label class="hero-alt-field">
+                      Texto alternativo
+                      <input name="hero_small_alt" maxlength="240" placeholder="Describí qué aparece en la imagen de apoyo.">
+                      <small>No repitas “imagen de portada”; contá qué se ve.</small>
                     </label>
                   </div>
                 </div>

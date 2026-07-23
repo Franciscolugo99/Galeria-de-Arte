@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap");
 
 :root {
   --ivory: oklch(95.2% 0.022 82);
@@ -1125,6 +1126,13 @@ p {
 .contact-form select:focus,
 .contact-form textarea:focus {
   border-color: var(--terracotta);
+}
+
+.contact-form input:focus-visible,
+.contact-form select:focus-visible,
+.contact-form textarea:focus-visible {
+  outline: 2px solid var(--terracotta);
+  outline-offset: 4px;
 }
 
 .contact-form .button {

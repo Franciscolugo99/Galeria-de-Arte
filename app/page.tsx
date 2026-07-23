@@ -35,6 +35,8 @@ interface SiteSettings {
   artist_photo: string;
   hero_large_image: string;
   hero_small_image: string;
+  hero_large_alt: string;
+  hero_small_alt: string;
   contact_interest_options: string;
   commission_image: string;
   commission_kicker: string;
@@ -58,6 +60,8 @@ const defaultSettings: SiteSettings = {
   artist_photo: "",
   hero_large_image: "/art/obras-reales/contexto/carina-pintando-alas-hero.webp",
   hero_small_image: "/art/obras-reales/uvas-borgona-vertical.webp",
+  hero_large_alt: "Carina Donaire pintando alas coloridas sobre un panel de madera",
+  hero_small_alt: "Pintura vertical de un racimo de uvas borgoña con reflejos violetas",
   contact_interest_options:
     "Encargar un retrato\nComprar una obra disponible\nRealizar otra consulta",
   commission_image: "/art/obras-reales/contexto/corcho-humeante-obra.webp",
@@ -498,12 +502,16 @@ export default function Home() {
   ];
 
   return (
-    <main>
+    <>
       <header className="site-header">
         <a className="brand" href="#inicio" aria-label="Ir al inicio">
           {settings.artist_name}
         </a>
-        <nav id="navegacion-principal" className="main-nav">
+        <nav
+          id="navegacion-principal"
+          className="main-nav"
+          aria-label="Navegación principal"
+        >
           {navLinks.map(([label, href]) => (
             <a key={href} href={href}>
               {label}
@@ -512,6 +520,7 @@ export default function Home() {
         </nav>
       </header>
 
+      <main>
       <section className="hero" id="inicio">
         <div className="hero-copy reveal reveal-delay">
           <p className="eyebrow">Carina Donaire · Artista visual</p>
@@ -540,7 +549,7 @@ export default function Home() {
                 settings.hero_large_image ||
                 defaultSettings.hero_large_image
               }
-              alt="Imagen principal de portada de Carina Donaire"
+              alt={settings.hero_large_alt || defaultSettings.hero_large_alt}
               decoding="async"
               fetchPriority="high"
             />
@@ -551,7 +560,7 @@ export default function Home() {
                 settings.hero_small_image ||
                 defaultSettings.hero_small_image
               }
-              alt="Obra destacada en la portada"
+              alt={settings.hero_small_alt || defaultSettings.hero_small_alt}
               decoding="async"
               loading="eager"
             />
@@ -924,6 +933,8 @@ export default function Home() {
         </form>
       </section>
 
+      </main>
+
       <footer>
         <a className="brand" href="#inicio">
           {settings.artist_name}
@@ -934,6 +945,6 @@ export default function Home() {
           <a className="admin-access" href="/admin/">Administrar sitio</a>
         </div>
       </footer>
-    </main>
+    </>
   );
 }

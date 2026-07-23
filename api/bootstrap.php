@@ -198,6 +198,8 @@ function settings_defaults(): array
         'artist_photo' => '',
         'hero_large_image' => '/art/obras-reales/contexto/carina-pintando-alas-hero.webp',
         'hero_small_image' => '/art/obras-reales/uvas-borgona-vertical.webp',
+        'hero_large_alt' => 'Carina Donaire pintando alas coloridas sobre un panel de madera',
+        'hero_small_alt' => 'Pintura vertical de un racimo de uvas borgoña con reflejos violetas',
         'contact_interest_options' => "Encargar un retrato\nComprar una obra disponible\nRealizar otra consulta",
         'commission_image' => '/art/obras-reales/contexto/corcho-humeante-obra.webp',
         'commission_kicker' => 'Obras por encargo',

@@ -529,8 +529,8 @@ export default function Home() {
           </h1>
           <span className="brush-stroke" aria-hidden="true" />
           <p className="hero-intro">
-            Portfolio de obras originales, piezas figurativas, naturaleza y
-            encargos personalizados realizados en Mendoza.
+            Galería de obras originales, pintura figurativa, naturaleza y
+            retratos por encargo en Mendoza.
           </p>
           <div className="hero-actions">
             <a className="button button-primary" href="#obras">

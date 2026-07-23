@@ -58,12 +58,12 @@ const html = `<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Obras originales, paisajes y retratos realistas pintados a mano en Mendoza, Argentina.">
+  <meta name="description" content="Obras originales, pintura figurativa, naturaleza y retratos por encargo de Carina Donaire en Mendoza, Argentina.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <title>Carina Donaire | Pintura realista y retratos</title>
+  <title>Carina Donaire | Pintora en Mendoza y retratos por encargo</title>
 ${cssLinks}
 </head>
 <body>
@@ -94,6 +94,10 @@ for (const directory of ["art", "data"]) {
 await cp(
   path.join(projectRoot, "public", "favicon.svg"),
   path.join(outputDir, "favicon.svg"),
+);
+await cp(
+  path.join(projectRoot, "public", "maintenance.html"),
+  path.join(outputDir, "maintenance.html"),
 );
 
 await mkdir(path.join(outputDir, "public", "art"), { recursive: true });
@@ -134,10 +138,25 @@ DirectoryIndex index.html index.php
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
   Header always set X-Frame-Options "SAMEORIGIN"
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  <FilesMatch "^(index\\.html|maintenance\\.html)$">
+    Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header always set Pragma "no-cache"
+    Header always set Expires "0"
+  </FilesMatch>
 </IfModule>
 <FilesMatch "^(\\.install-token|\\.env.*|config\\.local\\.php)$">
   Require all denied
 </FilesMatch>
+<Files ".maintenance">
+  Require all denied
+</Files>
+ErrorDocument 503 /maintenance.html
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{DOCUMENT_ROOT}/.maintenance -f
+  RewriteCond %{REQUEST_URI} !^/maintenance\\.html$
+  RewriteRule ^ - [R=503,L]
+</IfModule>
 `,
   "utf8",
 );

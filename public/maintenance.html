@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="refresh" content="30">
+  <title>Preparando la galería | Carina Donaire</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ivory: #f4eddf;
+      --paper: #fbf7ef;
+      --charcoal: #292722;
+      --muted: #746c61;
+      --terracotta: #a95336;
+      --terracotta-dark: #763722;
+      --olive: #6f7455;
+      --line: rgba(41, 39, 34, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      display: grid;
+      min-height: 100svh;
+      overflow: hidden;
+      color: var(--charcoal);
+      background:
+        radial-gradient(circle at 84% 18%, rgba(169, 83, 54, 0.11), transparent 26rem),
+        radial-gradient(circle at 10% 92%, rgba(111, 116, 85, 0.09), transparent 25rem),
+        var(--ivory);
+      font-family: Manrope, "Segoe UI", Arial, sans-serif;
+    }
+
+    body::before {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      content: "";
+      opacity: 0.26;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.1'/%3E%3C/svg%3E");
+      mix-blend-mode: multiply;
+    }
+
+    main {
+      position: relative;
+      display: grid;
+      width: min(100%, 72rem);
+      min-height: 100svh;
+      margin-inline: auto;
+      padding: clamp(1.5rem, 5vw, 4.5rem);
+      grid-template-columns: minmax(0, 1.05fr) minmax(17rem, 0.95fr);
+      align-items: center;
+      gap: clamp(2rem, 7vw, 7rem);
+    }
+
+    .brand {
+      position: absolute;
+      top: clamp(1.5rem, 5vw, 4rem);
+      left: clamp(1.5rem, 5vw, 4.5rem);
+      margin: 0;
+      font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+      font-size: 1.18rem;
+      letter-spacing: 0.025em;
+    }
+
+    .copy {
+      max-width: 38rem;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 0 0 1.25rem;
+      color: var(--terracotta-dark);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 2.8rem;
+      height: 1px;
+      content: "";
+      background: currentColor;
+    }
+
+    h1 {
+      max-width: 12ch;
+      margin: 0;
+      font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+      font-size: clamp(3.3rem, 8vw, 7.2rem);
+      font-weight: 400;
+      line-height: 0.88;
+      letter-spacing: -0.055em;
+    }
+
+    .message {
+      max-width: 34rem;
+      margin: clamp(1.5rem, 4vw, 2.5rem) 0 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 1.5vw, 1.2rem);
+      line-height: 1.75;
+    }
+
+    .refresh-note {
+      margin: 1.25rem 0 0;
+      color: var(--olive);
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .canvas {
+      position: relative;
+      display: grid;
+      aspect-ratio: 4 / 5;
+      width: min(100%, 25rem);
+      justify-self: end;
+      place-items: center;
+      border: 1px solid var(--line);
+      background: rgba(251, 247, 239, 0.62);
+      box-shadow: 0 1.8rem 5rem rgba(83, 62, 44, 0.09);
+      transform: rotate(1.5deg);
+    }
+
+    .canvas::before,
+    .canvas::after {
+      position: absolute;
+      content: "";
+      border: 1px solid var(--line);
+      pointer-events: none;
+    }
+
+    .canvas::before {
+      inset: 0.75rem;
+    }
+
+    .canvas::after {
+      width: 1px;
+      height: 13%;
+      right: 16%;
+      bottom: -8%;
+      border: 0;
+      background: var(--terracotta);
+    }
+
+    .brush-scene {
+      width: 82%;
+      overflow: visible;
+    }
+
+    .paint-stroke {
+      stroke-dasharray: 280;
+      stroke-dashoffset: 280;
+      transform-origin: left center;
+      animation: paint 1.75s cubic-bezier(0.65, 0, 0.35, 1) 0.2s 3 forwards;
+    }
+
+    .brush {
+      transform-origin: center;
+      animation: brush 1.75s cubic-bezier(0.65, 0, 0.35, 1) 0.2s 3 forwards;
+    }
+
+    @keyframes paint {
+      0% {
+        stroke-dashoffset: 280;
+        opacity: 0.2;
+      }
+      70%,
+      100% {
+        stroke-dashoffset: 0;
+        opacity: 1;
+      }
+    }
+
+    @keyframes brush {
+      0% {
+        transform: translate(-5rem, -0.65rem) rotate(-6deg);
+      }
+      70% {
+        transform: translate(5.15rem, 0.45rem) rotate(4deg);
+      }
+      100% {
+        transform: translate(5.15rem, 0.45rem) rotate(4deg);
+      }
+    }
+
+    @media (max-width: 760px) {
+      body {
+        overflow: auto;
+      }
+
+      main {
+        min-height: 100svh;
+        padding-top: 7rem;
+        grid-template-columns: 1fr;
+        align-content: center;
+        gap: 2.25rem;
+      }
+
+      h1 {
+        max-width: 10ch;
+      }
+
+      .canvas {
+        width: min(76vw, 18rem);
+        justify-self: start;
+        margin-left: 12vw;
+      }
+    }
+
+    @media (max-height: 690px) and (min-width: 761px) {
+      h1 {
+        font-size: clamp(3rem, 7vw, 5.6rem);
+      }
+
+      .canvas {
+        max-height: 72vh;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .paint-stroke {
+        stroke-dashoffset: 0;
+        animation: none;
+      }
+
+      .brush {
+        transform: translate(5.15rem, 0.45rem) rotate(4deg);
+        animation: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="brand">Carina Donaire</p>
+
+    <section class="copy" aria-labelledby="maintenance-title">
+      <p class="eyebrow">Un momento, por favor</p>
+      <h1 id="maintenance-title">Estamos preparando la galería.</h1>
+      <p class="message">
+        Estamos acomodando las obras y dando los últimos retoques. Volvé en unos
+        minutos para recorrer el portfolio.
+      </p>
+      <p class="refresh-note">Esta página se actualizará automáticamente.</p>
+    </section>
+
+    <div class="canvas" aria-hidden="true">
+      <svg class="brush-scene" viewBox="0 0 320 240" role="presentation">
+        <path
+          class="paint-stroke"
+          d="M42 139 C89 113 142 130 184 119 C219 110 249 120 281 102"
+          fill="none"
+          stroke="#a95336"
+          stroke-width="25"
+          stroke-linecap="round"
+        />
+        <g class="brush">
+          <path d="M125 96 L198 30 L214 47 L140 111 Z" fill="#6f7455" />
+          <path d="M198 30 L207 21 C211 17 217 18 221 22 L224 25 C228 29 227 35 223 39 L214 47 Z" fill="#292722" />
+          <path d="M125 96 C117 100 108 110 103 127 C101 134 106 138 113 135 C130 129 139 119 140 111 Z" fill="#763722" />
+          <path d="M112 132 C121 125 128 118 134 106" fill="none" stroke="#f4eddf" stroke-width="2" opacity=".5" />
+        </g>
+      </svg>
+    </div>
+  </main>
+</body>
+</html>
